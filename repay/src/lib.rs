@@ -1,5 +1,7 @@
 //! A typed client for the Repay Gateway API (Repay Online).
 //!
+//! The package is `repay-gateway`; the library is imported as `repay`.
+//!
 //! ```no_run
 //! # #[cfg(feature = "reqwest")]
 //! # async fn run() -> Result<(), repay::Error> {
@@ -10,11 +12,12 @@
 //! let client = Client::builder(Credentials::new("api-user", "secure-token"))
 //!     .merchant_id(1234)
 //!     .build();
-//! let sale = CardSaleRequest::builder()
-//!     .amount(Amount::from(dec!(19.99)))
-//!     .card_number("4111111111111111")
-//!     .exp_date(ExpDate::new(12, 2030).unwrap())
-//!     .build();
+//! let sale = CardSaleRequest::keyed(
+//!     Amount::from(dec!(19.99)),
+//!     "4111111111111111",
+//!     ExpDate::new(12, 2030).unwrap(),
+//! )
+//! .with_cvv("123");
 //! let detail = client.card_transactions().sale(&sale).await?;
 //! println!("{:?}", detail.result_text);
 //! # Ok(())
@@ -36,6 +39,17 @@
 //!   [`Download`](types::Download) responses.
 //! - [`validate`]: checks of the schema's constraints, collecting every violation
 //!   with the path of the field.
+//! - [`bulk`]: the CSV uploads of bulk operations, and their outcomes.
+//!
+//! # Features
+//!
+//! - `reqwest` (default): `transport::ReqwestTransport`, the async client's
+//!   default transport, on tokio or (in WebAssembly) `fetch`.
+//! - `ureq`: `blocking::UreqTransport`, the blocking client's default transport.
+//! - `rustls` (default) or `native-tls`: the TLS library of those transports.
+//!
+//! Without a transport feature, the clients take any
+//! [`Transport`](transport::Transport) or [`blocking::Transport`].
 //!
 //! The secure token grants full access to the merchant's account: keep it on a
 //! server. The WebAssembly builds are for servers, edge workers and WASI hosts,
@@ -72,6 +86,11 @@ pub use operation::{Body, Export, ExportFormat, Exportable, MerchantHeader, Oper
 pub use protocol::{DEFAULT_API_VERSION, DEFAULT_USER_AGENT};
 
 pub use rust_decimal::{Decimal, dec};
+
+/// Compiles the README's examples as doc tests.
+#[cfg(all(doctest, feature = "reqwest", feature = "ureq"))]
+#[doc = include_str!("../README.md")]
+struct ReadmeDoctests;
 
 /// Implements `Validate` and a redacting `Debug` for a schema struct.
 #[doc(hidden)]
