@@ -114,3 +114,53 @@ fn debug_redacts_sensitive_fields() {
     assert!(debug.contains("zip: Some(\"49503\")"), "{debug}");
     assert!(debug.starts_with("Sale {"), "{debug}");
 }
+
+#[derive(Model)]
+#[repay(one_of = "card_number exp_date | card_token")]
+struct Payment {
+    #[repay(sensitive)]
+    card_number: Option<String>,
+    exp_date: Option<ExpDate>,
+    #[repay(max_length = 10)]
+    card_token: Option<String>,
+}
+
+fn payment_messages(payment: &Payment) -> Vec<String> {
+    match payment.validate() {
+        Ok(()) => Vec::new(),
+        Err(error) => error.violations().iter().map(ToString::to_string).collect(),
+    }
+}
+
+#[test]
+fn one_of_needs_exactly_one_complete_group() {
+    let keyed = Payment {
+        card_number: Some("4111111111111111".into()),
+        exp_date: Some(ExpDate::new(12, 2030).unwrap()),
+        card_token: None,
+    };
+    assert!(payment_messages(&keyed).is_empty());
+
+    let neither = Payment {
+        card_number: None,
+        exp_date: None,
+        card_token: None,
+    };
+    assert_eq!(
+        payment_messages(&neither),
+        ["set exactly one of card_number or card_token"]
+    );
+
+    let half_keyed_and_long_token = Payment {
+        card_number: Some("4111111111111111".into()),
+        exp_date: None,
+        card_token: Some("a-very-long-token".into()),
+    };
+    assert_eq!(
+        payment_messages(&half_keyed_and_long_token),
+        [
+            "card_token: must be at most 10 characters, not 17",
+            "set exactly one of card_number or card_token, not card_number and card_token",
+        ]
+    );
+}

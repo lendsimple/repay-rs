@@ -41,6 +41,10 @@ pub struct Overrides {
     /// Path parameter name -> Rust type.
     #[serde(default)]
     pub path_params: BTreeMap<String, String>,
+    /// Definition -> groups of alternative fields; a group's first field is its
+    /// key. Validation needs exactly one key set, and then the group's other fields.
+    #[serde(default)]
+    pub one_of: BTreeMap<String, Vec<Vec<String>>>,
     /// Operation ID -> where it goes in the client.
     #[serde(default)]
     pub operations: BTreeMap<String, OperationOverride>,
@@ -158,6 +162,8 @@ pub struct StructDef {
     pub role: Role,
     pub doc: Option<String>,
     pub fields: Vec<Field>,
+    /// Groups of alternative fields (see `Overrides::one_of`).
+    pub one_of: Vec<Vec<String>>,
 }
 
 #[derive(Debug)]
@@ -474,13 +480,48 @@ impl<'a> Builder<'a> {
                 sensitive,
             });
         }
+        let one_of = self.one_of(name, role, &fields)?;
         Ok(StructDef {
             name: self.type_name(name),
             origin: name.to_owned(),
             role,
             doc: clean_doc(def.description.as_deref()),
             fields,
+            one_of,
         })
+    }
+
+    /// The `[one_of]` groups of a definition, checked against its fields.
+    fn one_of(
+        &mut self,
+        name: &str,
+        role: Role,
+        fields: &[Field],
+    ) -> Result<Vec<Vec<String>>, String> {
+        let Some(groups) = self.ov.one_of.get(name) else {
+            return Ok(Vec::new());
+        };
+        self.used.insert(format!("one_of.{name}"));
+        if !role.serializes() {
+            return Err(format!("one_of.{name}: not a request"));
+        }
+        if groups.len() < 2 || groups.iter().any(Vec::is_empty) {
+            return Err(format!("one_of.{name}: needs two or more non-empty groups"));
+        }
+        let mut seen = BTreeSet::new();
+        for field in groups.iter().flatten() {
+            match fields.iter().find(|f| f.name == *field) {
+                None => return Err(format!("one_of.{name}: no field {field}")),
+                Some(f) if f.required || f.ty.is_vec() => {
+                    return Err(format!("one_of.{name}: {field} must be optional"));
+                }
+                Some(_) => {}
+            }
+            if !seen.insert(field) {
+                return Err(format!("one_of.{name}: {field} is in two groups"));
+            }
+        }
+        Ok(groups.clone())
     }
 
     /// The Rust type for a schema, before overrides.
@@ -855,6 +896,7 @@ impl<'a> Builder<'a> {
                 "path_params",
                 ov.path_params.keys().cloned().collect(),
             ))
+            .chain(keys("one_of", ov.one_of.keys().cloned().collect()))
             .chain(keys("operations", ov.operations.keys().cloned().collect()));
         let stale: Vec<String> = all.filter(|k| !self.used.contains(k)).collect();
         if stale.is_empty() {
@@ -1061,6 +1103,8 @@ mod tests {
         "1" = "One"
         [path_params]
         thing_id = "TransactionId"
+        [one_of]
+        ThingRequest = [["token"], ["amount"]]
         [operations]
         Things_Create = { resource = "things", method = "create" }
     "#;
@@ -1192,6 +1236,36 @@ mod tests {
     fn unknown_pattern_fails() {
         let overrides = OVERRIDES.replace(r#""^(?!.*<).*$" = "no_angle_bracket""#, "");
         assert!(error(SPEC, &overrides).contains("no rule for pattern"));
+    }
+
+    #[test]
+    fn one_of_groups_are_kept() {
+        let model = model();
+        assert_eq!(model.structs[1].one_of, [["token"], ["amount"]]);
+    }
+
+    #[test]
+    fn one_of_fields_must_exist_and_be_optional() {
+        let with = |groups: &str| {
+            let overrides = OVERRIDES.replace(r#"ThingRequest = [["token"], ["amount"]]"#, groups);
+            error(SPEC, &overrides)
+        };
+        assert_eq!(
+            with(r#"ThingRequest = [["nope"], ["token"]]"#),
+            "one_of.ThingRequest: no field nope"
+        );
+        assert_eq!(
+            with(r#"ThingRequest = [["name"], ["token"]]"#),
+            "one_of.ThingRequest: name must be optional"
+        );
+        assert_eq!(
+            with(r#"ThingRequest = [["token"], ["token", "amount"]]"#),
+            "one_of.ThingRequest: token is in two groups"
+        );
+        assert_eq!(
+            with(r#"Thing = [["kind"], ["notes"]]"#),
+            "one_of.Thing: not a request"
+        );
     }
 
     #[test]

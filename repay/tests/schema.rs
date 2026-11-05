@@ -57,10 +57,25 @@ fn enums_serialize_as_their_values() {
 fn a_request_checks_the_spec_constraints() {
     let request = CardSaleRequest::builder()
         .amount(Amount::from(dec!(1)))
+        .card_token("tok_1")
         .name_on_card("<script>")
         .build();
     let error = request.validate().unwrap_err();
     assert_eq!(error.to_string(), "name_on_card: must not contain `<`");
+}
+
+#[test]
+fn a_request_needs_exactly_one_payment_source() {
+    let request = CardSaleRequest::builder()
+        .amount(Amount::from(dec!(1)))
+        .card_token("tok_1")
+        .device_card_data("encrypted")
+        .build();
+    assert_eq!(
+        request.validate().unwrap_err().to_string(),
+        "set exactly one of card_number, card_token, device_card_data or magnetic_stripe_data, \
+         not card_token and device_card_data"
+    );
 }
 
 #[test]

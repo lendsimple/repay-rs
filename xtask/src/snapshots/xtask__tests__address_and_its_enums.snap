@@ -119,6 +119,7 @@ StructDef {
             sensitive: false,
         },
     ],
+    one_of: [],
 }
 EnumDef {
     name: "State",

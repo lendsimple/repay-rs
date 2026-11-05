@@ -159,6 +159,27 @@ remove = [
     "CustomFieldRequest.max_value",
 ]
 
+# Alternative payment sources: validation needs exactly one group's first field
+# (its key), and then the rest of that group. The fields stay optional on the wire.
+[one_of]
+# "Required if CardToken is not provided" / "Required if CardNumber and ExpDate
+# are not provided"; device data is "in leu of a card number, exp date and cvv".
+CardSaleRequest = [["card_number", "exp_date"], ["card_token"], ["device_card_data"], ["magnetic_stripe_data"]]
+CardAuthRequest = [["card_number", "exp_date"], ["card_token"], ["device_card_data"], ["magnetic_stripe_data"]]
+UnlinkedCardRefundRequest = [["card_number", "exp_date"], ["card_token"]]
+CardDisbursementRequest = [["card_number", "exp_date"], ["card_token"], ["device_card_data"]]
+# Not CreateCardTokenRequest: the token update operations send it too, where an
+# expiration date alone is a valid change.
+# The card token "is an alternative to providing the primary account number".
+CardAccountValidateRequest = [["primary_account_number"], ["card_token"]]
+# "Required if AchToken is not provided" / "Required if AccountNumber and
+# TransitNumber are not provided".
+AchSaleRequest = [["account_number", "transit_number", "name_on_check"], ["ach_token"]]
+AchCreditRequest = [["account_number", "transit_number", "name_on_check"], ["ach_token"]]
+AchDebitPrenoteRequest = [["account_number", "transit_number", "name_on_check"], ["ach_token"]]
+AchCreditPrenoteRequest = [["account_number", "transit_number", "name_on_check"], ["ach_token"]]
+AchRebillRequest = [["account_number", "transit_number", "name_on_check"], ["ach_token"]]
+
 # Enum names, and the properties that share each one.
 [enums]
 AchTransactionType = [

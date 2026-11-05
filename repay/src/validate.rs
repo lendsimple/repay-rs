@@ -291,6 +291,58 @@ pub fn check_rule(
     }
 }
 
+/// Checks alternatives, such as a card number (with its expiration date) *or* a
+/// card token: exactly one group's first field (its key) must be set, and then
+/// the group's other fields too. Each group is its field names and whether each
+/// is set.
+#[doc(hidden)]
+pub fn check_one_of(
+    groups: &[(&[&'static str], &[bool])],
+    path: &mut Path,
+    out: &mut Vec<Violation>,
+) {
+    let keys: Vec<&str> = groups.iter().map(|(names, _)| names[0]).collect();
+    let chosen: Vec<&(&[&'static str], &[bool])> =
+        groups.iter().filter(|(_, set)| set[0]).collect();
+    match chosen.as_slice() {
+        [] => violation(
+            path,
+            out,
+            format!("set exactly one of {}", join(&keys, "or")),
+        ),
+        [(names, set)] => {
+            for (name, set) in names.iter().zip(set.iter()).skip(1) {
+                if !set {
+                    path.push_field(name);
+                    violation(path, out, format!("is required with {}", names[0]));
+                    path.pop();
+                }
+            }
+        }
+        several => {
+            let set: Vec<&str> = several.iter().map(|(names, _)| names[0]).collect();
+            violation(
+                path,
+                out,
+                format!(
+                    "set exactly one of {}, not {}",
+                    join(&keys, "or"),
+                    join(&set, "and")
+                ),
+            );
+        }
+    }
+}
+
+/// `a, b or c`.
+fn join(items: &[&str], last: &str) -> String {
+    match items {
+        [] => String::new(),
+        [one] => (*one).to_owned(),
+        [init @ .., tail] => format!("{} {last} {tail}", init.join(", ")),
+    }
+}
+
 /// Checks that stand in for the schema's regular expressions.
 ///
 /// The schema's patterns use lookaround, which the `regex` crate does not support,
@@ -361,6 +413,57 @@ pub mod rules {
 
 #[cfg(test)]
 mod tests {
+    mod one_of {
+        use super::super::*;
+
+        const KEYED: &[&str] = &["card_number", "exp_date"];
+        const TOKEN: &[&str] = &["card_token"];
+
+        fn check(keyed: [bool; 2], token: bool) -> Vec<String> {
+            let mut out = Vec::new();
+            check_one_of(
+                &[(KEYED, &keyed), (TOKEN, &[token])],
+                &mut Path::default(),
+                &mut out,
+            );
+            out.iter().map(ToString::to_string).collect()
+        }
+
+        #[test]
+        fn one_complete_group_passes() {
+            assert!(check([true, true], false).is_empty());
+            assert!(check([false, false], true).is_empty());
+            // A companion without its key does not choose a group.
+            assert!(check([false, true], true).is_empty());
+        }
+
+        #[test]
+        fn none_or_several_fail() {
+            assert_eq!(
+                check([false, false], false),
+                ["set exactly one of card_number or card_token"]
+            );
+            assert_eq!(
+                check([true, true], true),
+                ["set exactly one of card_number or card_token, not card_number and card_token"]
+            );
+        }
+
+        #[test]
+        fn a_missing_companion_fails() {
+            assert_eq!(
+                check([true, false], false),
+                ["exp_date: is required with card_number"]
+            );
+        }
+
+        #[test]
+        fn joins_lists() {
+            assert_eq!(join(&["a", "b", "c"], "or"), "a, b or c");
+            assert_eq!(join(&["a"], "or"), "a");
+        }
+    }
+
     use super::rules::*;
     use super::*;
 

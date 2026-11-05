@@ -487,4 +487,14 @@ StructDef {
             sensitive: false,
         },
     ],
+    one_of: [
+        [
+            "account_number",
+            "transit_number",
+            "name_on_check",
+        ],
+        [
+            "ach_token",
+        ],
+    ],
 }

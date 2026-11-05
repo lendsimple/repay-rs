@@ -46,14 +46,33 @@ impl FieldAttrs {
     }
 }
 
-/// Rejects `#[repay(...)]` where no attributes are supported.
-pub fn reject_container_attrs(attrs: &[Attribute]) -> Result<()> {
-    match repay_attrs(attrs).next() {
-        Some(attr) => Err(syn::Error::new_spanned(
-            attr,
-            "`#[repay(...)]` attributes go on fields, not on the struct",
-        )),
-        None => Ok(()),
+/// Attributes on the struct.
+#[derive(Default)]
+pub struct ContainerAttrs {
+    /// Each `one_of = "a b | c"`: groups of alternative fields.
+    pub one_of: Vec<LitStr>,
+}
+
+impl ContainerAttrs {
+    pub fn parse(attrs: &[Attribute]) -> Result<Self> {
+        let mut out = Self::default();
+        for attr in repay_attrs(attrs) {
+            attr.parse_nested_meta(|meta| {
+                if meta.path.is_ident("one_of") {
+                    out.one_of.push(meta.value()?.parse()?);
+                    Ok(())
+                } else {
+                    let name = meta
+                        .path
+                        .get_ident()
+                        .map_or_else(String::new, ToString::to_string);
+                    Err(meta.error(format!(
+                        "`{name}` goes on fields; on the struct, only `one_of` is supported"
+                    )))
+                }
+            })?;
+        }
+        Ok(out)
     }
 }
 

@@ -1,0 +1,5 @@
+error: `one_of` names unknown field `card_tokn`
+ --> tests/ui/one_of_unknown_field.rs:2:18
+  |
+2 | #[repay(one_of = "card_number | card_tokn")]
+  |                  ^^^^^^^^^^^^^^^^^^^^^^^^^

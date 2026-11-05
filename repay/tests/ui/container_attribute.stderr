@@ -1,5 +1,5 @@
-error: `#[repay(...)]` attributes go on fields, not on the struct
- --> tests/ui/container_attribute.rs:2:1
+error: `sensitive` goes on fields; on the struct, only `one_of` is supported
+ --> tests/ui/container_attribute.rs:2:9
   |
 2 | #[repay(sensitive)]
-  | ^^^^^^^^^^^^^^^^^^^
+  |         ^^^^^^^^^

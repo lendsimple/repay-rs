@@ -483,4 +483,19 @@ StructDef {
             sensitive: false,
         },
     ],
+    one_of: [
+        [
+            "card_number",
+            "exp_date",
+        ],
+        [
+            "card_token",
+        ],
+        [
+            "device_card_data",
+        ],
+        [
+            "magnetic_stripe_data",
+        ],
+    ],
 }

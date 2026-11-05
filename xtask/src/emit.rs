@@ -236,12 +236,18 @@ fn struct_def(def: &StructDef) -> TokenStream {
         .role
         .serializes()
         .then(|| quote!(#[builder(on(String, into))]));
+    let one_of = (!def.one_of.is_empty()).then(|| {
+        let groups: Vec<String> = def.one_of.iter().map(|g| g.join(" ")).collect();
+        let groups = groups.join(" | ");
+        quote!(#[repay(one_of = #groups)])
+    });
     let fields = def.fields.iter().map(|f| field(f, def.role));
     quote! {
         #doc
         #origin
         #derives
         #builder
+        #one_of
         #[non_exhaustive]
         pub struct #name {
             #(#fields)*

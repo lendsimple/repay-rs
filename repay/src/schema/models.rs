@@ -350,6 +350,7 @@ pub struct AchBatchQuery {
 /// Represents a request for an ACH credit prenote transaction.
 #[derive(Clone, PartialEq, Serialize, Model, Builder)]
 #[builder(on(String, into))]
+#[repay(one_of = "account_number transit_number name_on_check | ach_token")]
 #[non_exhaustive]
 pub struct AchCreditPrenoteRequest {
     /// The check type (e.g., PERSONAL, BUSINESS) for the transaction.
@@ -439,6 +440,7 @@ pub struct AchCreditPrenoteRequest {
 /// Represents a request for an ACH credit transaction, including amount, convenience amount, and recurring flag.
 #[derive(Clone, PartialEq, Serialize, Model, Builder)]
 #[builder(on(String, into))]
+#[repay(one_of = "account_number transit_number name_on_check | ach_token")]
 #[non_exhaustive]
 pub struct AchCreditRequest {
     /// The amount for the ACH credit transaction.
@@ -534,6 +536,7 @@ pub struct AchCreditRequest {
 /// Represents a request for an ACH debit prenote transaction.
 #[derive(Clone, PartialEq, Serialize, Model, Builder)]
 #[builder(on(String, into))]
+#[repay(one_of = "account_number transit_number name_on_check | ach_token")]
 #[non_exhaustive]
 pub struct AchDebitPrenoteRequest {
     /// The check type (e.g., PERSONAL, BUSINESS) for the transaction.
@@ -729,6 +732,7 @@ pub struct AchOffsetRequest {
 /// Represents a request for an ACH rebill transaction, including amount, convenience amount, and account/check details.
 #[derive(Clone, PartialEq, Serialize, Model, Builder)]
 #[builder(on(String, into))]
+#[repay(one_of = "account_number transit_number name_on_check | ach_token")]
 #[non_exhaustive]
 pub struct AchRebillRequest {
     /// The amount for the ACH rebill transaction.
@@ -840,6 +844,7 @@ pub struct AchRefundRequest {
 /// Represents a request for an ACH sale transaction, including amount, convenience amount, and recurring flag.
 #[derive(Clone, PartialEq, Serialize, Model, Builder)]
 #[builder(on(String, into))]
+#[repay(one_of = "account_number transit_number name_on_check | ach_token")]
 #[non_exhaustive]
 pub struct AchSaleRequest {
     /// The amount for the ACH sale transaction.
@@ -1228,6 +1233,7 @@ pub struct CardAccountNameValidationResult {
 /// Represents a request to validate a card account, including account number, CVV, expiration date, and related customer information.
 #[derive(Clone, PartialEq, Serialize, Model, Builder)]
 #[builder(on(String, into))]
+#[repay(one_of = "primary_account_number | card_token")]
 #[non_exhaustive]
 pub struct CardAccountValidateRequest {
     /// The primary account number (PAN) of the card to be validated. The card primary account number
@@ -1492,6 +1498,9 @@ pub struct CardAccountValidateResponse {
 /// Represents a card authorization request, including the transaction amount.
 #[derive(Clone, PartialEq, Serialize, Model, Builder)]
 #[builder(on(String, into))]
+#[repay(
+    one_of = "card_number exp_date | card_token | device_card_data | magnetic_stripe_data"
+)]
 #[non_exhaustive]
 pub struct CardAuthRequest {
     /// The transaction amount for the card authorization request.
@@ -1699,6 +1708,7 @@ pub struct CardDisbursementReportRequest {
 /// Represents a request to disburse funds to a card, including card details, amount, customer information, and custom fields.
 #[derive(Clone, PartialEq, Serialize, Model, Builder)]
 #[builder(on(String, into))]
+#[repay(one_of = "card_number exp_date | card_token | device_card_data")]
 #[non_exhaustive]
 pub struct CardDisbursementRequest {
     /// The amount to be disbursed to the card.
@@ -2079,6 +2089,9 @@ pub struct CardReversalRequest {
 /// Represents a card sale request, including the transaction amount.
 #[derive(Clone, PartialEq, Serialize, Model, Builder)]
 #[builder(on(String, into))]
+#[repay(
+    one_of = "card_number exp_date | card_token | device_card_data | magnetic_stripe_data"
+)]
 #[non_exhaustive]
 pub struct CardSaleRequest {
     /// The transaction amount for the card sale request.
@@ -4173,6 +4186,7 @@ pub struct TransactionTypeSummary {
 /// Represents a request to refund a card transaction without referencing a previous transaction.
 #[derive(Clone, PartialEq, Serialize, Model, Builder)]
 #[builder(on(String, into))]
+#[repay(one_of = "card_number exp_date | card_token")]
 #[non_exhaustive]
 pub struct UnlinkedCardRefundRequest {
     /// The amount to refund.

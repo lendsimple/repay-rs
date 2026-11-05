@@ -6,11 +6,11 @@ use syn::ext::IdentExt;
 use syn::spanned::Spanned;
 use syn::{DataStruct, DeriveInput, Fields, LitStr, Result};
 
-use crate::attrs::{FieldAttrs, reject_container_attrs};
+use crate::attrs::{ContainerAttrs, FieldAttrs};
 use crate::cardinality::Cardinality;
 
 pub fn expand(input: &DeriveInput, data: &DataStruct) -> Result<TokenStream> {
-    reject_container_attrs(&input.attrs)?;
+    let container = ContainerAttrs::parse(&input.attrs)?;
     let Fields::Named(fields) = &data.fields else {
         return Err(syn::Error::new_spanned(
             &input.ident,
@@ -27,6 +27,9 @@ pub fn expand(input: &DeriveInput, data: &DataStruct) -> Result<TokenStream> {
         let card = Cardinality::of(&field.ty);
         validations.push(validation(ident, &name, &card, &attrs)?);
         debug_fields.push(debug_field(ident, &name, &card, &attrs));
+    }
+    for groups in &container.one_of {
+        validations.push(one_of(groups, fields)?);
     }
 
     let ident = &input.ident;
@@ -116,6 +119,45 @@ fn validation(
         #v::Validate::validate_into(&self.#ident, path, out);
         path.pop();
     })
+}
+
+/// `one_of = "card_number exp_date | card_token"`: exactly one group's first field
+/// is set, and then the rest of that group.
+fn one_of(spec: &LitStr, fields: &syn::FieldsNamed) -> Result<TokenStream> {
+    let error = |message: String| syn::Error::new(spec.span(), message);
+    let text = spec.value();
+    let mut seen = Vec::new();
+    let mut groups = Vec::new();
+    for group in text.split('|') {
+        let names: Vec<&str> = group.split_whitespace().collect();
+        if names.is_empty() {
+            return Err(error("`one_of` has an empty group".into()));
+        }
+        let mut set = Vec::new();
+        for name in &names {
+            let field = fields
+                .named
+                .iter()
+                .find(|f| f.ident.as_ref().is_some_and(|i| i.unraw() == name))
+                .ok_or_else(|| error(format!("`one_of` names unknown field `{name}`")))?;
+            if !matches!(Cardinality::of(&field.ty), Cardinality::Optional(_)) {
+                return Err(error(format!(
+                    "`one_of` field `{name}` must be an `Option<T>`"
+                )));
+            }
+            if seen.contains(name) {
+                return Err(error(format!("`one_of` names `{name}` twice")));
+            }
+            seen.push(*name);
+            let ident = field.ident.as_ref().expect("named field");
+            set.push(quote!(self.#ident.is_some()));
+        }
+        groups.push(quote!((&[#(#names),*], &[#(#set),*])));
+    }
+    if groups.len() < 2 {
+        return Err(error("`one_of` needs at least two groups".into()));
+    }
+    Ok(quote!(::repay::validate::check_one_of(&[#(#groups),*], path, out);))
 }
 
 /// Constraint checks of one value, bound to `value` (a reference). Each is spanned on

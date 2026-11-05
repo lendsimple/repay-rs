@@ -22,6 +22,11 @@
 //! - `min_length = N`, `max_length = N`: length in characters, for string values.
 //! - `min = "0"`, `max = "1.5"`: inclusive bounds, for numeric values.
 //! - `rule = "name"`: a check from `repay::validate::rules`, for string values.
+//!
+//! Struct attribute, which may repeat:
+//! - `one_of = "card_number exp_date | card_token"`: alternatives. Exactly one
+//!   group's first field must be set, and then the group's other fields. Every
+//!   field named must be an `Option<T>`.
 
 mod attrs;
 mod cardinality;
