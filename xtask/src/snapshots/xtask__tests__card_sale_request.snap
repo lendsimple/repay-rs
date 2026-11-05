@@ -1,0 +1,486 @@
+---
+source: xtask/src/main.rs
+expression: "structure(&load_model().unwrap(), \"CardSaleRequest\")"
+---
+StructDef {
+    name: "CardSaleRequest",
+    origin: "CardSaleRequest",
+    role: Request,
+    doc: Some(
+        "Represents a card sale request, including the transaction amount.",
+    ),
+    fields: [
+        Field {
+            name: "amount",
+            ty: Named(
+                "Amount",
+            ),
+            required: false,
+            doc: Some(
+                "The transaction amount for the card sale request.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "card_number",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The card number for the transaction. Required if CardToken is not provided.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: true,
+        },
+        Field {
+            name: "exp_date",
+            ty: Named(
+                "ExpDate",
+            ),
+            required: false,
+            doc: Some(
+                "The card expiration date. Required if CardToken is not provided.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: true,
+        },
+        Field {
+            name: "card_token",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The card token for the transaction. Required if CardNumber and ExpDate are not provided.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: true,
+        },
+        Field {
+            name: "cvv",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The card CVV value.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: true,
+        },
+        Field {
+            name: "cvv_mode",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The CVV mode for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "magnetic_stripe_data",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The magnetic stripe data for the card.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: true,
+        },
+        Field {
+            name: "name_on_card",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The name on the card.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: Some(
+                    "no_angle_bracket",
+                ),
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "street",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The street address associated with the card.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: Some(
+                    "no_angle_bracket",
+                ),
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "zip",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The ZIP code associated with the card.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "invoice_id",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The invoice identifier for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "customer_id",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The customer identifier for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "register_number",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The register number for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "original_transaction_id",
+            ty: Named(
+                "TransactionId",
+            ),
+            required: false,
+            doc: Some(
+                "The original transaction identifier, if applicable.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "force_duplicate",
+            ty: Bool,
+            required: false,
+            doc: Some(
+                "A value indicating whether to force duplicate transactions.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "force_credit",
+            ty: Bool,
+            required: false,
+            doc: Some(
+                "A value indicating whether to force a credit transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "force_bypass_bin_blocking",
+            ty: Bool,
+            required: false,
+            doc: Some(
+                "A value indicating whether to force bypassing BIN blocking.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "force_auto_reverse",
+            ty: Bool,
+            required: false,
+            doc: Some(
+                "A value indicating whether to force auto-reversal of the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "is_quasi_cash",
+            ty: Bool,
+            required: false,
+            doc: Some(
+                "A value indicating whether the transaction is quasi-cash.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "convenience_amount",
+            ty: Named(
+                "Amount",
+            ),
+            required: false,
+            doc: Some(
+                "The convenience amount for the transaction, if applicable.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "custom_fields",
+            ty: Vec(
+                Named(
+                    "TransactionCustomField",
+                ),
+            ),
+            required: false,
+            doc: Some(
+                "The list of custom fields for the transaction. Disallows duplicate custom field names.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "surcharge",
+            ty: Named(
+                "AmountString",
+            ),
+            required: false,
+            doc: Some(
+                "The surcharge as a string value. Must be zero or positive if provided.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "enhanced_data",
+            ty: Named(
+                "EnhancedData",
+            ),
+            required: false,
+            doc: Some(
+                "The enhanced data for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "authentication_data",
+            ty: Named(
+                "DigitalWalletAuthenticationData",
+            ),
+            required: false,
+            doc: Some(
+                "The digital wallet authentication data for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "bank_descriptor",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The bank descriptor for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "decline_tracking",
+            ty: Named(
+                "DeclineTrackingRequest",
+            ),
+            required: false,
+            doc: Some(
+                "The decline tracking request for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "device_card_data",
+            ty: String,
+            required: false,
+            doc: Some(
+                "Use encrypted device card data in leu of a card number, exp date and cvv",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: true,
+        },
+        Field {
+            name: "device_card_data_test_key",
+            ty: Bool,
+            required: false,
+            doc: Some(
+                "If using DeviceCardData, signifies that that data was encrypted using a test key",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+    ],
+}

@@ -1,0 +1,448 @@
+---
+source: xtask/src/main.rs
+expression: "[\"CardTransactions_ProcessSaleAsync\", \"CardTransactions_ProcessCapture\",\n\"DigitalWallet_GetMerchant\", \"CardTransactions_QueryExportTransactions\",\n\"CardSettlementBatchClosing_CloseCardSettlementBatch\",\n\"Adjustments_ProcessBulkDisbursementFundingAdjustment\",].map(|id|\noperation(&model, id)).join(\"\\n\")"
+---
+OperationDef {
+    id: "CardTransactions_ProcessSaleAsync",
+    resource: "card_transactions",
+    method: "sale",
+    http_method: "POST",
+    path: "/transactions/card/sale",
+    path_params: [],
+    query: [],
+    body: Json(
+        Named(
+            "CardSaleRequest",
+        ),
+    ),
+    merchant: None,
+    response: Some(
+        Named(
+            "TransactionDetailCardResponse",
+        ),
+    ),
+    export: false,
+    deprecated: false,
+    doc: Some(
+        "Process a card sale transaction.\n\nProcesses a combined authorization and capture in a single step. Supports 3-D Secure\nauthentication data. Reseller users must provide the MerchantId header. Supports auto-reversal\nretry for debit cards. Returns HTTP 200 if approved or HTTP 201 otherwise.",
+    ),
+}
+OperationDef {
+    id: "CardTransactions_ProcessCapture",
+    resource: "card_transactions",
+    method: "capture",
+    http_method: "POST",
+    path: "/transactions/card/{transaction_id}/capture",
+    path_params: [
+        Param {
+            field: "transaction_id",
+            wire: "transaction_id",
+            ty: Named(
+                "TransactionId",
+            ),
+            doc: Some(
+                "The TRX_HD_Key of the authorized transaction to\ncapture.",
+            ),
+        },
+    ],
+    query: [],
+    body: Json(
+        Named(
+            "CardCaptureRequest",
+        ),
+    ),
+    merchant: Optional,
+    response: Some(
+        Named(
+            "TransactionDetailCardResponse",
+        ),
+    ),
+    export: false,
+    deprecated: false,
+    doc: Some(
+        "Capture a previously authorized card transaction.\n\nCompletes a previously authorized transaction by capturing the funds. Supports optional\namount override. Reseller users must provide the MerchantId header. Returns HTTP 200 if\napproved or HTTP 201 otherwise.",
+    ),
+}
+OperationDef {
+    id: "DigitalWallet_GetMerchant",
+    resource: "digital_wallet",
+    method: "get_merchant",
+    http_method: "GET",
+    path: "/digitalwallet/merchants/{request.wallet_merchant_id}",
+    path_params: [
+        Param {
+            field: "wallet_merchant_id",
+            wire: "request.wallet_merchant_id",
+            ty: String,
+            doc: None,
+        },
+    ],
+    query: [
+        QueryParam {
+            field: "use_test_keys",
+            wire: "request.use_test_keys",
+            ty: Bool,
+            multi: false,
+            doc: Some(
+                "A value indicating whether to use test keys for the digital wallet URI request.",
+            ),
+        },
+    ],
+    body: None,
+    merchant: None,
+    response: Some(
+        Named(
+            "DigitalWalletMerchantDetailsResponse",
+        ),
+    ),
+    export: false,
+    deprecated: false,
+    doc: Some(
+        "Get digital wallet merchant details.\n\nRetrieves digital wallet merchant details by wallet merchant ID. Restricted to reseller users;\nreturns HTTP 403 for non-reseller users. Maps the `DigitalWalletUriRequest` to a\nMerchant model (with correlation ID) and delegates to\nIMerchantRegistration.GetMerchantAsync. The result is mapped to a\n`DigitalWalletMerchantDetailsResponse` containing the wallet merchant ID and\nServices (ApplePay enabled flag, domain names). After retrieval, checks if the merchant\nwas not found (ApplePay not enabled and no domain names configured), throwing\nItemNotFoundException in that case.",
+    ),
+}
+OperationDef {
+    id: "CardTransactions_QueryExportTransactions",
+    resource: "card_transactions",
+    method: "search",
+    http_method: "GET",
+    path: "/transactions/card/query/export",
+    path_params: [],
+    query: [
+        QueryParam {
+            field: "skip",
+            wire: "skip",
+            ty: I32,
+            multi: false,
+            doc: Some(
+                "Optional number of records to skip.",
+            ),
+        },
+        QueryParam {
+            field: "take",
+            wire: "take",
+            ty: I32,
+            multi: false,
+            doc: Some(
+                "Optional max records to return.",
+            ),
+        },
+        QueryParam {
+            field: "payment_type",
+            wire: "query.payment_type",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The payment type for the transaction query.",
+            ),
+        },
+        QueryParam {
+            field: "card_holder",
+            wire: "query.card_holder",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The cardholder name for the transaction query.",
+            ),
+        },
+        QueryParam {
+            field: "card_number",
+            wire: "query.card_number",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The card number for the transaction query.",
+            ),
+        },
+        QueryParam {
+            field: "po_number",
+            wire: "query.po_number",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The purchase order number for the transaction query.",
+            ),
+        },
+        QueryParam {
+            field: "batch_number",
+            wire: "query.batch_number",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The batch number for the transaction query.",
+            ),
+        },
+        QueryParam {
+            field: "exclude_captured",
+            wire: "query.exclude_captured",
+            ty: Bool,
+            multi: false,
+            doc: Some(
+                "A value indicating whether to exclude captured transactions from the query.",
+            ),
+        },
+        QueryParam {
+            field: "show_only_auto_reversals",
+            wire: "query.show_only_auto_reversals",
+            ty: Bool,
+            multi: false,
+            doc: Some(
+                "A value indicating whether to show only auto-reversal transactions.",
+            ),
+        },
+        QueryParam {
+            field: "mark_auto_reversals",
+            wire: "query.mark_auto_reversals",
+            ty: Bool,
+            multi: false,
+            doc: Some(
+                "A value indicating whether to mark auto-reversal transactions in the results.",
+            ),
+        },
+        QueryParam {
+            field: "trx_status",
+            wire: "query.trx_status",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The transaction status for the query.",
+            ),
+        },
+        QueryParam {
+            field: "custom_fields",
+            wire: "query.custom_fields",
+            ty: Vec(
+                String,
+            ),
+            multi: true,
+            doc: Some(
+                "The list of custom fields for the transaction query.",
+            ),
+        },
+        QueryParam {
+            field: "card_token",
+            wire: "query.card_token",
+            ty: I32,
+            multi: false,
+            doc: Some(
+                "The card token for the transaction query.",
+            ),
+        },
+        QueryParam {
+            field: "start_settle_date",
+            wire: "query.start_settle_date",
+            ty: DateTime,
+            multi: false,
+            doc: Some(
+                "The start settlement date for the transaction query.",
+            ),
+        },
+        QueryParam {
+            field: "end_settle_date",
+            wire: "query.end_settle_date",
+            ty: DateTime,
+            multi: false,
+            doc: Some(
+                "The end settlement date for the transaction query.",
+            ),
+        },
+        QueryParam {
+            field: "start_date",
+            wire: "query.start_date",
+            ty: DateTime,
+            multi: false,
+            doc: Some(
+                "The start date for the transaction query.",
+            ),
+        },
+        QueryParam {
+            field: "end_date",
+            wire: "query.end_date",
+            ty: DateTime,
+            multi: false,
+            doc: Some(
+                "The end date for the transaction query.",
+            ),
+        },
+        QueryParam {
+            field: "merchant_name",
+            wire: "query.merchant_name",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The merchant name.",
+            ),
+        },
+        QueryParam {
+            field: "merchant_id",
+            wire: "query.merchant_id",
+            ty: I32,
+            multi: false,
+            doc: Some(
+                "The merchant ID.",
+            ),
+        },
+        QueryParam {
+            field: "username",
+            wire: "query.username",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The username associated with the transaction.",
+            ),
+        },
+        QueryParam {
+            field: "transaction_id",
+            wire: "query.transaction_id",
+            ty: I32,
+            multi: false,
+            doc: Some(
+                "The transaction ID.",
+            ),
+        },
+        QueryParam {
+            field: "exclude_voids",
+            wire: "query.exclude_voids",
+            ty: Bool,
+            multi: false,
+            doc: Some(
+                "A value indicating whether to exclude voided transactions.",
+            ),
+        },
+        QueryParam {
+            field: "trx_type",
+            wire: "query.trx_type",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The transaction type.",
+            ),
+        },
+        QueryParam {
+            field: "result",
+            wire: "query.result",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The result filter for the transaction query.",
+            ),
+        },
+        QueryParam {
+            field: "exclude_result",
+            wire: "query.exclude_result",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The result to exclude from the transaction query.",
+            ),
+        },
+        QueryParam {
+            field: "total_amount",
+            wire: "query.total_amount",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The total amount as a string.",
+            ),
+        },
+        QueryParam {
+            field: "customer_id",
+            wire: "query.customer_id",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The customer ID.",
+            ),
+        },
+        QueryParam {
+            field: "register",
+            wire: "query.register",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The register identifier.",
+            ),
+        },
+        QueryParam {
+            field: "invoice_number",
+            wire: "query.invoice_number",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The invoice number.",
+            ),
+        },
+        QueryParam {
+            field: "approval_code",
+            wire: "query.approval_code",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The approval code.",
+            ),
+        },
+        QueryParam {
+            field: "filter_param",
+            wire: "query.filter_param",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "An additional filter parameter.",
+            ),
+        },
+    ],
+    body: None,
+    merchant: None,
+    response: Some(
+        Json,
+    ),
+    export: true,
+    deprecated: false,
+    doc: Some(
+        "Export card transactions via query string parameters.\n\nFunctionally identical to the POST query endpoint but accepts filter parameters from the\nquery string for GET-based export workflows. Enforces data retention policy. Supports JSON,\nCSV, Excel, and PDF output formats.",
+    ),
+}
+OperationDef {
+    id: "CardSettlementBatchClosing_CloseCardSettlementBatch",
+    resource: "batches",
+    method: "close_card",
+    http_method: "POST",
+    path: "/openbatches/card",
+    path_params: [],
+    query: [],
+    body: Json(
+        Named(
+            "CloseCardSettlementBatchRequest",
+        ),
+    ),
+    merchant: Required,
+    response: Some(
+        Named(
+            "CloseCardSettlementBatchResponse",
+        ),
+    ),
+    export: false,
+    deprecated: false,
+    doc: Some(
+        "Queue a card settlement batch for closing.\n\nQueues a card settlement batch for closing. Supports two modes depending on the request:\n\n- By batch ID — when request.BatchId is provided, calls\nQueueClosingBatchByBatchIdAsync which validates the batch ID range, fetches the batch,\nverifies the batch belongs to the authenticated merchant, validates the batch status is \"Open\"\nvia FluentValidation, updates the status to \"Queued\", and raises a batch closing event.\n- Single batch — when request.BatchId is null, calls\nQueueClosingSingleBatchAsync which validates the merchant's feature flag enablement,\nresolves the single processor profile for the merchant, fetches the single open batch for that\nprocessor profile, validates and queues it for closing.\n\nOn success, returns HTTP 202 Accepted with a `CloseCardSettlementBatchResponse`\ncontaining the batch ID and a correlation ID (from the CloudFront request header). On validation\nfailure, the FluentValidation.Results.ValidationResult errors are added to the\nModelState and a non-success response is returned.",
+    ),
+}
+OperationDef {
+    id: "Adjustments_ProcessBulkDisbursementFundingAdjustment",
+    resource: "adjustments",
+    method: "bulk_disbursement_funding",
+    http_method: "POST",
+    path: "/adjustments/disbursementfunding/bulk",
+    path_params: [],
+    query: [],
+    body: Multipart,
+    merchant: None,
+    response: Some(
+        Json,
+    ),
+    export: false,
+    deprecated: false,
+    doc: Some(
+        "Process bulk disbursement funding adjustments from a CSV file.\n\nProcesses bulk disbursement funding adjustments from a CSV file uploaded as multipart form data.\nThe CSV must contain columns: MerchantId, TransactionId, OriginalAmount, AdjustmentAmount (header row is optional).\nOnly one file is allowed per request. Each row is validated for sanity (positive amounts, adjustment <= original)\nand for duplicates. If all rows pass sanity checks, the engine validates each transaction (exists, correct type,\nmatching merchant, not fully reversed, remaining balance sufficient) before processing.\nReturns a `BulkTransactionProcessingResult` on full success, or a CSV file with per-row results\n(including error messages) on partial or full failure.",
+    ),
+}

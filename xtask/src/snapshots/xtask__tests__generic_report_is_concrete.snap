@@ -1,0 +1,50 @@
+---
+source: xtask/src/main.rs
+expression: "structure(&load_model().unwrap(), \"ReconciliationCardTransactionsReport\")"
+---
+StructDef {
+    name: "ReconciliationCardTransactionsReport",
+    origin: "TransactionsReportResponse[ReconciliationCardTransactionData]",
+    role: Response,
+    doc: Some(
+        "Represents a transactions report response containing a collection of transactions and the total record count.",
+    ),
+    fields: [
+        Field {
+            name: "transactions",
+            ty: Vec(
+                Named(
+                    "ReconciliationCardTransactionData",
+                ),
+            ),
+            required: false,
+            doc: Some(
+                "The collection of transactions included in the report.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "record_count",
+            ty: I32,
+            required: false,
+            doc: Some(
+                "The total number of records in the report.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+    ],
+}

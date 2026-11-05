@@ -1,0 +1,279 @@
+---
+source: xtask/src/main.rs
+expression: "format!(\"{}\\n{}\", structure(&model, \"ErrorResponse\"),\nenum_def(&model, \"StatusCode\"))"
+---
+StructDef {
+    name: "ErrorResponse",
+    origin: "ErrorResponse",
+    role: Response,
+    doc: Some(
+        "Represents a standard error response, including a message, status code, validation errors, and optional customer IDs.",
+    ),
+    fields: [
+        Field {
+            name: "message",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The error message describing the error condition.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "status_code",
+            ty: Named(
+                "StatusCode",
+            ),
+            required: false,
+            doc: Some(
+                "The HTTP status code associated with the error.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "validation_errors",
+            ty: Vec(
+                Named(
+                    "ValidationErrorResponse",
+                ),
+            ),
+            required: false,
+            doc: Some(
+                "The list of validation errors, if any, associated with the error response.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "customer_ids",
+            ty: Vec(
+                String,
+            ),
+            required: false,
+            doc: Some(
+                "The list of customer IDs associated with the error, if available.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+    ],
+}
+EnumDef {
+    name: "StatusCode",
+    variants: [
+        Variant {
+            name: "Continue",
+            value: "Continue",
+        },
+        Variant {
+            name: "SwitchingProtocols",
+            value: "SwitchingProtocols",
+        },
+        Variant {
+            name: "Ok",
+            value: "OK",
+        },
+        Variant {
+            name: "Created",
+            value: "Created",
+        },
+        Variant {
+            name: "Accepted",
+            value: "Accepted",
+        },
+        Variant {
+            name: "NonAuthoritativeInformation",
+            value: "NonAuthoritativeInformation",
+        },
+        Variant {
+            name: "NoContent",
+            value: "NoContent",
+        },
+        Variant {
+            name: "ResetContent",
+            value: "ResetContent",
+        },
+        Variant {
+            name: "PartialContent",
+            value: "PartialContent",
+        },
+        Variant {
+            name: "MultipleChoices",
+            value: "MultipleChoices",
+        },
+        Variant {
+            name: "Ambiguous",
+            value: "Ambiguous",
+        },
+        Variant {
+            name: "MovedPermanently",
+            value: "MovedPermanently",
+        },
+        Variant {
+            name: "Moved",
+            value: "Moved",
+        },
+        Variant {
+            name: "Found",
+            value: "Found",
+        },
+        Variant {
+            name: "Redirect",
+            value: "Redirect",
+        },
+        Variant {
+            name: "SeeOther",
+            value: "SeeOther",
+        },
+        Variant {
+            name: "RedirectMethod",
+            value: "RedirectMethod",
+        },
+        Variant {
+            name: "NotModified",
+            value: "NotModified",
+        },
+        Variant {
+            name: "UseProxy",
+            value: "UseProxy",
+        },
+        Variant {
+            name: "Unused",
+            value: "Unused",
+        },
+        Variant {
+            name: "TemporaryRedirect",
+            value: "TemporaryRedirect",
+        },
+        Variant {
+            name: "RedirectKeepVerb",
+            value: "RedirectKeepVerb",
+        },
+        Variant {
+            name: "BadRequest",
+            value: "BadRequest",
+        },
+        Variant {
+            name: "Unauthorized",
+            value: "Unauthorized",
+        },
+        Variant {
+            name: "PaymentRequired",
+            value: "PaymentRequired",
+        },
+        Variant {
+            name: "Forbidden",
+            value: "Forbidden",
+        },
+        Variant {
+            name: "NotFound",
+            value: "NotFound",
+        },
+        Variant {
+            name: "MethodNotAllowed",
+            value: "MethodNotAllowed",
+        },
+        Variant {
+            name: "NotAcceptable",
+            value: "NotAcceptable",
+        },
+        Variant {
+            name: "ProxyAuthenticationRequired",
+            value: "ProxyAuthenticationRequired",
+        },
+        Variant {
+            name: "RequestTimeout",
+            value: "RequestTimeout",
+        },
+        Variant {
+            name: "Conflict",
+            value: "Conflict",
+        },
+        Variant {
+            name: "Gone",
+            value: "Gone",
+        },
+        Variant {
+            name: "LengthRequired",
+            value: "LengthRequired",
+        },
+        Variant {
+            name: "PreconditionFailed",
+            value: "PreconditionFailed",
+        },
+        Variant {
+            name: "RequestEntityTooLarge",
+            value: "RequestEntityTooLarge",
+        },
+        Variant {
+            name: "RequestUriTooLong",
+            value: "RequestUriTooLong",
+        },
+        Variant {
+            name: "UnsupportedMediaType",
+            value: "UnsupportedMediaType",
+        },
+        Variant {
+            name: "RequestedRangeNotSatisfiable",
+            value: "RequestedRangeNotSatisfiable",
+        },
+        Variant {
+            name: "ExpectationFailed",
+            value: "ExpectationFailed",
+        },
+        Variant {
+            name: "UpgradeRequired",
+            value: "UpgradeRequired",
+        },
+        Variant {
+            name: "InternalServerError",
+            value: "InternalServerError",
+        },
+        Variant {
+            name: "NotImplemented",
+            value: "NotImplemented",
+        },
+        Variant {
+            name: "BadGateway",
+            value: "BadGateway",
+        },
+        Variant {
+            name: "ServiceUnavailable",
+            value: "ServiceUnavailable",
+        },
+        Variant {
+            name: "GatewayTimeout",
+            value: "GatewayTimeout",
+        },
+        Variant {
+            name: "HttpVersionNotSupported",
+            value: "HttpVersionNotSupported",
+        },
+    ],
+}

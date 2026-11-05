@@ -1,0 +1,438 @@
+# Adjustments applied by `cargo xtask codegen` on top of repay-v1.json and
+# repay-v1-internal.json.
+#
+# `Def.field` keys use the spec's definition and property names; `OpId.param` keys
+# use the operation ID and the parameter's wire name. Every entry must match
+# something in the spec; a stale entry is a codegen error.
+
+# .NET types Swashbuckle emitted that no operation uses.
+skip_definitions = [
+    "CancellationToken",
+    "SafeWaitHandle",
+    "WaitHandle",
+    # Superseded request models still in the assembly.
+    "DigitalWalletUriRequest",
+    "GetCardTransactionsRequest",
+]
+
+# Values redacted in `Debug` output, by property name.
+sensitive = [
+    "account_number",
+    "ach_token",
+    "authentication_cryptogram",
+    "authentication_payment_token",
+    "card_number",
+    "card_token",
+    "cvv",
+    "date_of_birth",
+    "device_card_data",
+    "exp_date",
+    "external_payment_token",
+    "magnetic_stripe_data",
+    "primary_account_number",
+    "token_pan",
+]
+
+# Minimum/maximum that do not apply to the Rust type.
+ignore_bounds = [
+    # A string enum that also carries the bounds of the .NET enum's numbers.
+    "ContractRequest.status",
+]
+
+# The spec's patterns use lookaround, which a regex crate without backtracking
+# cannot run, so each one is checked by a hand-written rule in
+# `repay::validate::rules`.
+[patterns]
+"^(?!.*<).*$" = "no_angle_bracket"
+"^[^#%^&+*()\\=\\[\\]{}:'<>./?|\\s]+$" = "wallet_merchant_id"
+"^(?=.{1,253}\\.?$)(?:(?!-|[^.]+_)[A-Za-z0-9-_]{1,63}(?<!-)(?:\\.|$)){2,}$" = "hostname"
+
+# Rust names for definitions.
+[rename]
+# Instances of a .NET generic; `[` is not valid in a Rust name.
+"TransactionsReportResponse[ReconciliationCardTransactionData]" = "ReconciliationCardTransactionsReport"
+"TransactionsReportResponse[RegionalTransactionDetailData]" = "RegionalTransactionDetailReport"
+
+# Property types. A name-based entry applies only where the spec's type fits the
+# target (an ID only to integers, `Amount` only to numbers, and so on).
+[retype.by_name]
+# Money, kept exact instead of `f64`.
+adjustment_amount = "Amount"
+amount = "Amount"
+amt_bills_to_date = "Amount"
+auth_amount = "Amount"
+base_amount = "Amount"
+capture_amount = "Amount"
+convenience_amount = "Amount"
+convenience_amt = "Amount"
+disbursed_amount = "Amount"
+disbursement_service_fee = "Amount"
+discount_amount = "Amount"
+duty_amount = "Amount"
+freight_amount = "Amount"
+funding_amount = "Amount"
+item_tax_amount = "Amount"
+item_total_amount = "Amount"
+item_unit_price = "Amount"
+merchant_disbursement_service_fee = "Amount"
+negative_amount = "Amount"
+original_amount = "Amount"
+paid_amount = "Amount"
+positive_amount = "Amount"
+repay_disbursement_service_fee = "Amount"
+requested_auth_amount = "Amount"
+return_amount = "Amount"
+reversal_amount = "Amount"
+sale_amount = "Amount"
+settle_amount = "Amount"
+subtotal = "Amount"
+surcharge_amount = "Amount"
+tax = "Amount"
+tax_amount = "Amount"
+tip_amount = "Amount"
+total_amount = "Amount"
+# IDs, so that one kind cannot be passed for another.
+auth_form_id = "AuthFormId"
+contract_key = "ContractKey"
+custom_field_id = "CustomFieldId"
+funding_transaction_id = "TransactionId"
+merchant_id = "MerchantId"
+orig_transaction_id = "TransactionId"
+original_transaction_id = "TransactionId"
+reversal_transaction_id = "TransactionId"
+transaction_id = "TransactionId"
+transaction_ids = "TransactionId"
+
+# Applied to request definitions only: responses keep the spec's looser types, so
+# that an unexpected value from the API never fails a response.
+[retype.requests]
+# Sent as MMYY.
+exp_date = "ExpDate"
+# `object` in the spec, but a token is a string (and is one in responses).
+card_token = "String"
+
+[retype.fields]
+# A string in the spec ("Must be zero or positive if provided"), sent as one.
+"CardSaleRequest.surcharge" = "AmountString"
+"CardAuthRequest.surcharge" = "AmountString"
+
+[required]
+# Required in the spec, but each is one of several alternatives ("Required if
+# AchToken is not provided"). Stage 5 replaces these with source enums.
+remove = [
+    "AchSaleRequest.account_number",
+    "AchSaleRequest.transit_number",
+    "AchSaleRequest.name_on_check",
+    "AchSaleRequest.ach_token",
+    "AchCreditRequest.account_number",
+    "AchCreditRequest.transit_number",
+    "AchCreditRequest.name_on_check",
+    "AchCreditRequest.ach_token",
+    "AchDebitPrenoteRequest.account_number",
+    "AchDebitPrenoteRequest.transit_number",
+    "AchDebitPrenoteRequest.name_on_check",
+    "AchDebitPrenoteRequest.ach_token",
+    "AchCreditPrenoteRequest.account_number",
+    "AchCreditPrenoteRequest.transit_number",
+    "AchCreditPrenoteRequest.name_on_check",
+    "AchCreditPrenoteRequest.ach_token",
+    "AchRebillRequest.account_number",
+    "AchRebillRequest.transit_number",
+    "AchRebillRequest.name_on_check",
+    "AchRebillRequest.ach_token",
+    # "an alternative to providing the primary account number (PAN)".
+    "CardAccountValidateRequest.primary_account_number",
+    "CardAccountValidateRequest.card_token",
+    # "Required unless TransactionId is provided" and similar.
+    "AchTransactionQuery.start_date",
+    "AchTransactionQuery.end_date",
+    "CashTransactionQuery.start_date",
+    "CashTransactionQuery.end_date",
+    "LimitedCardTransactionQuery.start_date",
+    "LimitedCardTransactionQuery.end_date",
+    "LimitedCardTransactionQuery.transaction_id",
+    # "(if numeric)": only for numeric custom fields.
+    "CustomFieldRequest.decimal_places",
+    "CustomFieldRequest.min_value",
+    "CustomFieldRequest.max_value",
+]
+
+# Enum names, and the properties that share each one.
+[enums]
+AchTransactionType = [
+    "AchFraudVelocityPaymentSettings.transaction_types",
+    "AchFraudVelocityPaymentSettings.ach_transaction_types",
+    "CardFraudVelocityPaymentSettings.ach_transaction_types",
+    "DisbursementFraudVelocityPaymentSettings.ach_transaction_types",
+    "GlobalFraudVelocityPaymentSettings.ach_transaction_types",
+]
+AchValidationDecision = ["AchAccountValidationResponse.decision"]
+AchValidationProvider = ["AchAccountValidationResponse.provider"]
+AchValidationExternalStatus = ["AchAccountValidationResponse.external_status"]
+AchValidationInternalStatus = ["AchAccountValidationResponse.internal_status"]
+CardTransactionType = [
+    "AchFraudVelocityPaymentSettings.card_transaction_types",
+    "CardFraudVelocityPaymentSettings.transaction_types",
+    "CardFraudVelocityPaymentSettings.card_transaction_types",
+    "DisbursementFraudVelocityPaymentSettings.card_transaction_types",
+    "GlobalFraudVelocityPaymentSettings.card_transaction_types",
+]
+ContractStatus = ["ContractRequest.status"]
+CountryCode = ["Address.country_code"]
+Currency = ["CardDisbursementReportRequest.currency"]
+CustomerStatus = ["CustomerBaseRequest.status"]
+# Codes "0" to "2", with the text alongside in a `_text` property.
+NameMatch = [
+    "AchAccountValidationResponse.name_validation_result",
+    "AchNameValidationResultDetails.first_name_validation_result",
+    "AchNameValidationResultDetails.last_name_validation_result",
+    "CardAccountValidateResponse.name_validation_result",
+    "CardNameValidationResultDetails.first_name_validation_result",
+    "CardNameValidationResultDetails.middle_name_validation_result",
+    "CardNameValidationResultDetails.last_name_validation_result",
+]
+NameMatchText = [
+    "AchAccountValidationResponse.name_validation_result_text",
+    "AchNameValidationResultDetails.first_name_validation_result_text",
+    "AchNameValidationResultDetails.last_name_validation_result_text",
+    "CardAccountValidateResponse.name_validation_result_text",
+    "CardNameValidationResultDetails.first_name_validation_result_text",
+    "CardNameValidationResultDetails.middle_name_validation_result_text",
+    "CardNameValidationResultDetails.last_name_validation_result_text",
+]
+# Codes "0" and "1".
+OfacMatch = [
+    "AchAccountValidationResponse.ofac_validation_result",
+    "OfacValidationResultDetails.name_validation_result",
+    "OfacValidationResultDetails.address_validation_result",
+    "OfacValidationResultDetails.date_of_birth_validation_result",
+]
+OfacMatchText = [
+    "OfacValidationResultDetails.name_validation_result_text",
+    "OfacValidationResultDetails.address_validation_result_text",
+    "OfacValidationResultDetails.date_of_birth_validation_result_text",
+]
+OfacScreeningText = ["AchAccountValidationResponse.ofac_validation_result_text"]
+ReportType = ["CardTransactions_QuerySalesByDate.report_type"]
+State = ["Address.state"]
+# A .NET `HttpStatusCode` name, such as "BadRequest".
+StatusCode = ["ErrorResponse.status_code"]
+TimeframeMode = [
+    "AchFraudVelocityPaymentSettings.timeframe_mode",
+    "CardFraudVelocityPaymentSettings.timeframe_mode",
+    "DisbursementFraudVelocityPaymentSettings.timeframe_mode",
+    "GlobalFraudVelocityPaymentSettings.timeframe_mode",
+]
+TrackingModel = [
+    "AchFraudVelocityPaymentSettings.tracking_models",
+    "CardFraudVelocityPaymentSettings.tracking_models",
+    "DisbursementFraudVelocityPaymentSettings.tracking_models",
+    "GlobalFraudVelocityPaymentSettings.tracking_models",
+]
+
+# Variant names for values that are not Rust identifiers.
+[enum_variants.NameMatch]
+"0" = "Match"
+"1" = "PartialMatch"
+"2" = "NoMatch"
+
+[enum_variants.OfacMatch]
+"0" = "Match"
+"1" = "NoMatch"
+
+# Path parameter types, where the spec's type fits.
+[path_params]
+ach_token_key = "AchTokenKey"
+audit_key = "AuditKey"
+auth_form_id = "AuthFormId"
+card_token_key = "CardTokenKey"
+contract_key = "ContractKey"
+custom_field_id = "CustomFieldId"
+customer_key = "CustomerKey"
+org_id = "OrgId"
+rule_id = "RuleId"
+template_id = "TemplateId"
+# An integer everywhere but the ACH void, which keeps a string.
+transaction_id = "TransactionId"
+
+# Where each operation goes in the client: `client.<resource>().<method>(..)`.
+[operations]
+HealthCheck_HealthCheck = { resource = "health", method = "check" }
+
+# Card transactions.
+CardTransactions_ProcessSaleAsync = { resource = "card_transactions", method = "sale" }
+CardTransactions_ProcessAuthAsync = { resource = "card_transactions", method = "auth" }
+CardTransactions_ProcessCapture = { resource = "card_transactions", method = "capture" }
+CardTransactions_ProcessDisbursementAsync = { resource = "card_transactions", method = "disbursement" }
+CardTransactions_ProcessForce = { resource = "card_transactions", method = "force" }
+CardTransactions_ProcessForceRebillAsync = { resource = "card_transactions", method = "force_rebill" }
+CardTransactions_ProcessRebillAsync = { resource = "card_transactions", method = "rebill" }
+CardTransactions_ProcessRefundAsync = { resource = "card_transactions", method = "refund" }
+CardTransactions_ProcessUnlinkedRefundAsync = { resource = "card_transactions", method = "unlinked_refund" }
+CardTransactions_ProcessReversal = { resource = "card_transactions", method = "reversal" }
+CardTransactions_ProcessVoid = { resource = "card_transactions", method = "void" }
+CardTransactions_BulkVoid = { resource = "card_transactions", method = "bulk_void" }
+# A CSV upload; the spec declares no parameter for the file.
+CardTransactions_BulkProcessReversal = { resource = "card_transactions", method = "bulk_reversal", multipart = true }
+CardTransactions_EmailTransactionReceipt = { resource = "card_transactions", method = "email_receipt" }
+CardTransactions_GetItrProfileWarningContextInfo = { resource = "card_transactions", method = "itr_profile_warning" }
+CardTransactions_GetTransactionById = { resource = "card_transactions", method = "get" }
+CardTransactions_GetTransactions = { resource = "card_transactions", method = "list" }
+CardTransactions_QueryTransactions = { resource = "card_transactions", method = "query" }
+CardTransactions_QueryExportTransactions = { resource = "card_transactions", method = "search" }
+CardTransactions_LimitedQueryTransaction = { resource = "card_transactions", method = "limited_query" }
+CardTransactions_QueryCardSummary = { resource = "card_transactions", method = "summary" }
+CardTransactions_QuerySalesByDate = { resource = "card_transactions", method = "query_by_date" }
+
+# Card tokens.
+CardTokens_CreateCardTokenAsync = { resource = "card_tokens", method = "create" }
+CardTokens_GetCardTokenAsync = { resource = "card_tokens", method = "get" }
+CardTokens_UpdateCardTokenAsync = { resource = "card_tokens", method = "update" }
+CardTokens_UpdatePartialCardTokenAsync = { resource = "card_tokens", method = "patch" }
+CardTokens_DeleteCardToken = { resource = "card_tokens", method = "delete" }
+CardTokens_QueryCardTokens = { resource = "card_tokens", method = "query" }
+
+# ACH tokens.
+AchTokens_CreateAchTokens = { resource = "ach_tokens", method = "create" }
+AchTokens_GetAchToken = { resource = "ach_tokens", method = "get" }
+AchTokens_UpdateAchToken = { resource = "ach_tokens", method = "update" }
+AchTokens_UpdatePartialAchToken = { resource = "ach_tokens", method = "patch" }
+AchTokens_DeleteAchToken = { resource = "ach_tokens", method = "delete" }
+AchTokens_QueryAchTokens = { resource = "ach_tokens", method = "query" }
+
+# Customers, and the tokens stored on one.
+Customer_CreateCustomer = { resource = "customers", method = "create" }
+Customer_GetCustomer = { resource = "customers", method = "get" }
+Customer_GetCustomers = { resource = "customers", method = "list" }
+Customer_UpdateCustomer = { resource = "customers", method = "update" }
+Customer_PatchCustomer = { resource = "customers", method = "patch" }
+CardTokens_GetCardTokens = { resource = "customers", method = "list_card_tokens" }
+CardTokens_GetCardTokenEventsAsync = { resource = "customers", method = "card_token_events" }
+CreateCustomerCardTokenAsync = { resource = "customers", method = "create_card_token" }
+GetCustomerCardTokenAsync = { resource = "customers", method = "get_card_token" }
+UpdateCustomerCardTokenAsync = { resource = "customers", method = "update_card_token" }
+UpdatePartialCustomerCardTokenAsync = { resource = "customers", method = "patch_card_token" }
+DeleteCustomerCardToken = { resource = "customers", method = "delete_card_token" }
+AchTokens_GetAchTokens = { resource = "customers", method = "list_ach_tokens" }
+CreateCustomerAchTokens = { resource = "customers", method = "create_ach_token" }
+GetCustomerAchToken = { resource = "customers", method = "get_ach_token" }
+UpdateCustomerAchToken = { resource = "customers", method = "update_ach_token" }
+UpdatePartialCustomerAchToken = { resource = "customers", method = "patch_ach_token" }
+DeleteCustomerAchToken = { resource = "customers", method = "delete_ach_token" }
+
+# Recurring billing contracts (all scoped to a customer).
+Contracts_AddContract = { resource = "contracts", method = "create" }
+Contracts_GetCustomerContractById = { resource = "contracts", method = "get" }
+Contracts_GetCustomerContracts = { resource = "contracts", method = "list" }
+Contracts_UpdateContract = { resource = "contracts", method = "update" }
+
+# ACH transactions.
+AchTransactionProcessing_ProcessSale = { resource = "ach_transactions", method = "sale" }
+AchTransactionProcessing_ProcessCredit = { resource = "ach_transactions", method = "credit" }
+AchTransactionProcessing_ProcessCreditPrenote = { resource = "ach_transactions", method = "credit_prenote" }
+AchTransactionProcessing_ProcessDebitPrenote = { resource = "ach_transactions", method = "debit_prenote" }
+AchTransactionProcessing_ProcessOffset = { resource = "ach_transactions", method = "offset" }
+AchTransactionProcessing_ProcessRebill = { resource = "ach_transactions", method = "rebill" }
+AchTransactionProcessing_ProcessRefund = { resource = "ach_transactions", method = "refund" }
+AchTransactionProcessing_ProcessVoid = { resource = "ach_transactions", method = "void" }
+AchTransactionProcessing_BulkVoid = { resource = "ach_transactions", method = "bulk_void" }
+AchTransactionProcessing_EmailTransactionReceipt = { resource = "ach_transactions", method = "email_receipt" }
+
+# ACH reporting.
+AchReporting_GetTransactions = { resource = "ach_reporting", method = "list" }
+AchReporting_QueryTransactions = { resource = "ach_reporting", method = "query" }
+AchReporting_QueryExportTransactions = { resource = "ach_reporting", method = "search" }
+AchReporting_GetNachaThresholdReport = { resource = "ach_reporting", method = "nacha_threshold_report" }
+AchBatch_QueryBatches = { resource = "ach_reporting", method = "query_batches" }
+
+# ACH authorization forms.
+AchAuthForm_CreateAuthRecord = { resource = "ach_auth_forms", method = "create" }
+AchAuthForm_GetAuthRecordById = { resource = "ach_auth_forms", method = "get" }
+AchAuthForm_GetAuthRecordByTransactionOrContract = { resource = "ach_auth_forms", method = "find" }
+AchAuthForm_UpdateAuthRecord = { resource = "ach_auth_forms", method = "update" }
+AchAuthForm_DeferralUpdateAuthRecord = { resource = "ach_auth_forms", method = "update_deferral" }
+AchAuthForm_CreateAuthFormIdTransaction = { resource = "ach_auth_forms", method = "link_transaction" }
+
+# Cash transactions.
+CashTransactions_SaleTransaction = { resource = "cash_transactions", method = "sale" }
+CashTransactions_RefundTransaction = { resource = "cash_transactions", method = "refund" }
+CashTransactions_VoidTransaction = { resource = "cash_transactions", method = "void" }
+CashTransactions_GetTransactionById = { resource = "cash_transactions", method = "get" }
+CashTransactions_QueryTransactions = { resource = "cash_transactions", method = "query" }
+CashTransactions_EmailTransactionReceipt = { resource = "cash_transactions", method = "email_receipt" }
+
+# Custom fields.
+CustomFields_CreateCustomField = { resource = "custom_fields", method = "create" }
+CustomFields_GetMerchantCustomFields = { resource = "custom_fields", method = "list" }
+CustomFields_UpdateCustomField = { resource = "custom_fields", method = "update" }
+CustomFields_GetTransactionCustomFieldValues = { resource = "custom_fields", method = "transaction_values" }
+
+# Digital wallet merchants and sessions.
+DigitalWallet_ProcessMerchantRegistration = { resource = "digital_wallet", method = "register_merchant" }
+DigitalWallet_ProcessMerchantUpdate = { resource = "digital_wallet", method = "update_merchant" }
+# The ID is declared as both a path and a query parameter; the path is enough.
+DigitalWallet_GetMerchant = { resource = "digital_wallet", method = "get_merchant", drop_query = ["request.wallet_merchant_id"] }
+DigitalWallet_DeleteMerchant = { resource = "digital_wallet", method = "delete_merchant", drop_query = ["request.wallet_merchant_id"] }
+DigitalWallet_ProcessApplePayWebSession = { resource = "digital_wallet", method = "apple_pay_web_session" }
+
+# Digital wallet transactions.
+DigitalWalletTransactions_ProcessApplePaySale = { resource = "digital_wallet_transactions", method = "apple_pay_sale" }
+DigitalWalletTransactions_ProcessApplePayAuth = { resource = "digital_wallet_transactions", method = "apple_pay_auth" }
+DigitalWalletTransactions_ProcessGooglePaySale = { resource = "digital_wallet_transactions", method = "google_pay_sale" }
+DigitalWalletTransactions_ProcessGooglePayAuth = { resource = "digital_wallet_transactions", method = "google_pay_auth" }
+
+# Fraud velocity templates.
+FraudVelocityTemplate_CreateTemplate = { resource = "fraud_velocity", method = "create" }
+FraudVelocityTemplate_GetTemplate = { resource = "fraud_velocity", method = "get" }
+FraudVelocityTemplate_UpdateTemplate = { resource = "fraud_velocity", method = "patch" }
+FraudVelocityTemplate_DeleteTemplate = { resource = "fraud_velocity", method = "delete" }
+FraudVelocityTemplate_ActivateTemplate = { resource = "fraud_velocity", method = "activate" }
+FraudVelocityTemplate_DeactivateTemplate = { resource = "fraud_velocity", method = "deactivate" }
+FraudVelocityTemplate_AddMerchant = { resource = "fraud_velocity", method = "add_merchants" }
+FraudVelocityTemplate_RemoveMerchant = { resource = "fraud_velocity", method = "remove_merchants" }
+
+# Intelligent transaction routing rules.
+TransRoutingConfig_CreateRequestRule = { resource = "routing_rules", method = "create_request_rule" }
+TransRoutingConfig_GetRequestRules = { resource = "routing_rules", method = "request_rules" }
+TransRoutingConfig_UpdateRequestRule = { resource = "routing_rules", method = "update_request_rule" }
+TransRoutingConfig_DeleteRequestRule = { resource = "routing_rules", method = "delete_request_rule" }
+TransRoutingConfig_CreateResponseRule = { resource = "routing_rules", method = "create_response_rule" }
+TransRoutingConfig_GetResponseRules = { resource = "routing_rules", method = "response_rules" }
+TransRoutingConfig_UpdateResponseRule = { resource = "routing_rules", method = "update_response_rule" }
+TransRoutingConfig_DeleteResponseRule = { resource = "routing_rules", method = "delete_response_rule" }
+TransRoutingConfig_GetHistory = { resource = "routing_rules", method = "history" }
+TransRoutingConfig_Rollback = { resource = "routing_rules", method = "rollback" }
+TransRoutingConfig_GetSupportedCardTypes = { resource = "routing_rules", method = "supported_card_types" }
+
+# Payment services onboarding.
+PaymentServicesOnboarding_CreateECashMerchant = { resource = "onboarding", method = "create_ecash_merchant" }
+PaymentServicesOnboarding_UpdateECashMerchant = { resource = "onboarding", method = "update_ecash_merchant" }
+PaymentServicesOnboarding_GetMerchantInfo = { resource = "onboarding", method = "ecash_merchant" }
+PaymentServicesOnboarding_CreateOrUpdateNetSettlementMerchant = { resource = "onboarding", method = "upsert_net_settlement_merchant" }
+PaymentServicesOnboarding_GetNetSettlementMerchant = { resource = "onboarding", method = "net_settlement_merchant" }
+PaymentServicesOnboarding_ListNetSettlementMerchants = { resource = "onboarding", method = "list_net_settlement_merchants" }
+PaymentServicesOnboarding_GetOrganizationInfo = { resource = "onboarding", method = "organizations" }
+PaymentServicesOnboarding_GetOriginatingApplications = { resource = "onboarding", method = "originating_applications" }
+
+# Reseller reports.
+ResellerReports_QueryTransactions = { resource = "reseller_reports", method = "query_transactions" }
+ResellerReports_QueryDisbursementReport = { resource = "reseller_reports", method = "disbursements" }
+ResellerReports_QueryReconciliationCardTransactions = { resource = "reseller_reports", method = "reconciliation" }
+ResellerReports_QueryRegionalTransactionDetail = { resource = "reseller_reports", method = "regional_transaction_detail" }
+
+# Account validation and lookups.
+CardAccountValidation = { resource = "validation", method = "card_account" }
+AchAccountValidation = { resource = "validation", method = "ach_account" }
+FundsTransferInquiry_CreateFundsTransferInquiryAsync = { resource = "validation", method = "funds_transfer_inquiry" }
+CardInformation_GetCardInformation = { resource = "validation", method = "card_info" }
+BankInformation_GetBankByRoutingNumber = { resource = "validation", method = "bank_info" }
+
+# Card settlement batches.
+CardSettlementBatchClosing_CloseCardSettlementBatch = { resource = "batches", method = "close_card" }
+
+# Disbursement funding adjustments (internal API).
+Adjustments_ProcessDisbursementFundingAdjustment = { resource = "adjustments", method = "disbursement_funding" }
+Adjustments_ProcessDisbursementFundingReversal = { resource = "adjustments", method = "disbursement_funding_reversal" }
+# A CSV upload; the spec declares no parameter for the file.
+Adjustments_ProcessBulkDisbursementFundingAdjustment = { resource = "adjustments", method = "bulk_disbursement_funding", multipart = true }
+Adjustments_GetBulkDisbursementFundingAdjustmentTemplate = { resource = "adjustments", method = "bulk_template" }

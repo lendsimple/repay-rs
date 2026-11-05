@@ -1,0 +1,22 @@
+[package]
+publish = false
+name = "xtask"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+heck = "0.5.0"
+indexmap = { version = "2", features = ["serde"] }
+prettyplease = "0.3.0"
+proc-macro2 = "1.0.107"
+quote = "1.0.47"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+syn = { version = "3.0.6", features = ["full"] }
+toml = "1.1.7"
+
+[dev-dependencies]
+insta = "1.49.0"

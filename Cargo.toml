@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["repay", "repay-derive"]
+members = ["repay", "repay-derive", "xtask"]
 
 [workspace.package]
 edition = "2024"

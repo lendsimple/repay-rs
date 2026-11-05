@@ -1,0 +1,452 @@
+---
+source: xtask/src/main.rs
+expression: "format!(\"{}\\n{}\\n{}\", structure(&model, \"Address\"), enum_def(&model, \"State\"),\nenum_def(&model, \"CountryCode\"))"
+---
+StructDef {
+    name: "Address",
+    origin: "Address",
+    role: Request,
+    doc: Some(
+        "Represents a physical or mailing address, including street, city, state, zip code, and country information.",
+    ),
+    fields: [
+        Field {
+            name: "street",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The primary street address.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: Some(
+                    50,
+                ),
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "street2",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The secondary street address (e.g., apartment, suite, unit).",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: Some(
+                    50,
+                ),
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "city",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The city name.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: Some(
+                    50,
+                ),
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "state",
+            ty: Named(
+                "State",
+            ),
+            required: false,
+            doc: Some(
+                "The state or province code.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "zip",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The postal or ZIP code.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: Some(
+                    30,
+                ),
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "country_code",
+            ty: Named(
+                "CountryCode",
+            ),
+            required: false,
+            doc: Some(
+                "The country code.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+    ],
+}
+EnumDef {
+    name: "State",
+    variants: [
+        Variant {
+            name: "Unknown",
+            value: "Unknown",
+        },
+        Variant {
+            name: "Aa",
+            value: "AA",
+        },
+        Variant {
+            name: "Ab",
+            value: "AB",
+        },
+        Variant {
+            name: "Ae",
+            value: "AE",
+        },
+        Variant {
+            name: "Ak",
+            value: "AK",
+        },
+        Variant {
+            name: "Al",
+            value: "AL",
+        },
+        Variant {
+            name: "Ap",
+            value: "AP",
+        },
+        Variant {
+            name: "Ar",
+            value: "AR",
+        },
+        Variant {
+            name: "As",
+            value: "AS",
+        },
+        Variant {
+            name: "Az",
+            value: "AZ",
+        },
+        Variant {
+            name: "Bc",
+            value: "BC",
+        },
+        Variant {
+            name: "Ca",
+            value: "CA",
+        },
+        Variant {
+            name: "Co",
+            value: "CO",
+        },
+        Variant {
+            name: "Ct",
+            value: "CT",
+        },
+        Variant {
+            name: "Dc",
+            value: "DC",
+        },
+        Variant {
+            name: "De",
+            value: "DE",
+        },
+        Variant {
+            name: "Fl",
+            value: "FL",
+        },
+        Variant {
+            name: "Fm",
+            value: "FM",
+        },
+        Variant {
+            name: "Ga",
+            value: "GA",
+        },
+        Variant {
+            name: "Gu",
+            value: "GU",
+        },
+        Variant {
+            name: "Hi",
+            value: "HI",
+        },
+        Variant {
+            name: "Ia",
+            value: "IA",
+        },
+        Variant {
+            name: "Id",
+            value: "ID",
+        },
+        Variant {
+            name: "Il",
+            value: "IL",
+        },
+        Variant {
+            name: "In",
+            value: "IN",
+        },
+        Variant {
+            name: "Ks",
+            value: "KS",
+        },
+        Variant {
+            name: "Ky",
+            value: "KY",
+        },
+        Variant {
+            name: "La",
+            value: "LA",
+        },
+        Variant {
+            name: "Ma",
+            value: "MA",
+        },
+        Variant {
+            name: "Mb",
+            value: "MB",
+        },
+        Variant {
+            name: "Md",
+            value: "MD",
+        },
+        Variant {
+            name: "Me",
+            value: "ME",
+        },
+        Variant {
+            name: "Mh",
+            value: "MH",
+        },
+        Variant {
+            name: "Mi",
+            value: "MI",
+        },
+        Variant {
+            name: "Mn",
+            value: "MN",
+        },
+        Variant {
+            name: "Mo",
+            value: "MO",
+        },
+        Variant {
+            name: "Mp",
+            value: "MP",
+        },
+        Variant {
+            name: "Ms",
+            value: "MS",
+        },
+        Variant {
+            name: "Mt",
+            value: "MT",
+        },
+        Variant {
+            name: "Nb",
+            value: "NB",
+        },
+        Variant {
+            name: "Nc",
+            value: "NC",
+        },
+        Variant {
+            name: "Nd",
+            value: "ND",
+        },
+        Variant {
+            name: "Ne",
+            value: "NE",
+        },
+        Variant {
+            name: "Nh",
+            value: "NH",
+        },
+        Variant {
+            name: "Nj",
+            value: "NJ",
+        },
+        Variant {
+            name: "Nl",
+            value: "NL",
+        },
+        Variant {
+            name: "Nm",
+            value: "NM",
+        },
+        Variant {
+            name: "Ns",
+            value: "NS",
+        },
+        Variant {
+            name: "Nt",
+            value: "NT",
+        },
+        Variant {
+            name: "Nu",
+            value: "NU",
+        },
+        Variant {
+            name: "Nv",
+            value: "NV",
+        },
+        Variant {
+            name: "Ny",
+            value: "NY",
+        },
+        Variant {
+            name: "Oh",
+            value: "OH",
+        },
+        Variant {
+            name: "Ok",
+            value: "OK",
+        },
+        Variant {
+            name: "On",
+            value: "ON",
+        },
+        Variant {
+            name: "Or",
+            value: "OR",
+        },
+        Variant {
+            name: "Pa",
+            value: "PA",
+        },
+        Variant {
+            name: "Pe",
+            value: "PE",
+        },
+        Variant {
+            name: "Pr",
+            value: "PR",
+        },
+        Variant {
+            name: "Pw",
+            value: "PW",
+        },
+        Variant {
+            name: "Qc",
+            value: "QC",
+        },
+        Variant {
+            name: "Ri",
+            value: "RI",
+        },
+        Variant {
+            name: "Sc",
+            value: "SC",
+        },
+        Variant {
+            name: "Sd",
+            value: "SD",
+        },
+        Variant {
+            name: "Sk",
+            value: "SK",
+        },
+        Variant {
+            name: "Tn",
+            value: "TN",
+        },
+        Variant {
+            name: "Tx",
+            value: "TX",
+        },
+        Variant {
+            name: "Um",
+            value: "UM",
+        },
+        Variant {
+            name: "Ut",
+            value: "UT",
+        },
+        Variant {
+            name: "Va",
+            value: "VA",
+        },
+        Variant {
+            name: "Vi",
+            value: "VI",
+        },
+        Variant {
+            name: "Vt",
+            value: "VT",
+        },
+        Variant {
+            name: "Wa",
+            value: "WA",
+        },
+        Variant {
+            name: "Wi",
+            value: "WI",
+        },
+        Variant {
+            name: "Wv",
+            value: "WV",
+        },
+        Variant {
+            name: "Wy",
+            value: "WY",
+        },
+        Variant {
+            name: "Yt",
+            value: "YT",
+        },
+    ],
+}
+EnumDef {
+    name: "CountryCode",
+    variants: [
+        Variant {
+            name: "Unknown",
+            value: "Unknown",
+        },
+        Variant {
+            name: "Can",
+            value: "CAN",
+        },
+        Variant {
+            name: "Usa",
+            value: "USA",
+        },
+    ],
+}

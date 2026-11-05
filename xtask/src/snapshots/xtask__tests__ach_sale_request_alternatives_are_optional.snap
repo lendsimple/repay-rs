@@ -1,0 +1,490 @@
+---
+source: xtask/src/main.rs
+expression: "structure(&load_model().unwrap(), \"AchSaleRequest\")"
+---
+StructDef {
+    name: "AchSaleRequest",
+    origin: "AchSaleRequest",
+    role: Request,
+    doc: Some(
+        "Represents a request for an ACH sale transaction, including amount, convenience amount, and recurring flag.",
+    ),
+    fields: [
+        Field {
+            name: "amount",
+            ty: Named(
+                "Amount",
+            ),
+            required: false,
+            doc: Some(
+                "The amount for the ACH sale transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "convenience_amount",
+            ty: Named(
+                "Amount",
+            ),
+            required: false,
+            doc: Some(
+                "The convenience amount for the transaction, if applicable.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "force_ignore_account_validation_result",
+            ty: Bool,
+            required: false,
+            doc: Some(
+                "A value indicating whether to force ignore the account validation result.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "check_type",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The check type (e.g., PERSONAL, BUSINESS) for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "account_number",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The account number for the ACH transaction. Required if AchToken is not provided.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: true,
+        },
+        Field {
+            name: "transit_number",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The transit (routing) number for the ACH transaction. Required if AchToken is not provided.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "account_type",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The account type (e.g., CHECKING, SAVINGS) for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "name_on_check",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The name on check for the transaction. Required if AchToken is not provided.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "check_number",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The check number for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "sec_code",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The SEC code for the transaction. Must be 3 characters and is uppercased.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "discretionary_data",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The discretionary data for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "entry_description",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The entry description for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "effective_date",
+            ty: DateTime,
+            required: false,
+            doc: Some(
+                "The effective date for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "auth_form_id",
+            ty: Named(
+                "AuthFormId",
+            ),
+            required: false,
+            doc: Some(
+                "The authorization form ID for the transaction, if applicable.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "ach_token",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The ACH token for the transaction. Required if AccountNumber and TransitNumber are not provided.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: true,
+        },
+        Field {
+            name: "decline_tracking",
+            ty: Named(
+                "DeclineTrackingRequest",
+            ),
+            required: false,
+            doc: Some(
+                "The decline tracking request for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "customer_id",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The customer identifier associated with the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "invoice_id",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The invoice identifier for the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "state_code",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The state code associated with the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "date_of_birth",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The date of birth in MM/DD/YYYY or similar format.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: true,
+        },
+        Field {
+            name: "social_security_number",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The social security number of the customer.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "drivers_license_number",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The driver's license number of the customer.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "additional_id1",
+            ty: String,
+            required: false,
+            doc: Some(
+                "An additional identifier for the customer.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "additional_id1_type",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The type of the additional identifier.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "phone_number",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The phone number associated with the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "email",
+            ty: String,
+            required: false,
+            doc: Some(
+                "The email address associated with the transaction.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "force_duplicate",
+            ty: Bool,
+            required: false,
+            doc: Some(
+                "A value indicating whether to force duplicate transactions.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "invoice_duplicate",
+            ty: Bool,
+            required: false,
+            doc: Some(
+                "A value indicating whether to allow duplicate invoices.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
+            name: "custom_fields",
+            ty: Vec(
+                Named(
+                    "TransactionCustomField",
+                ),
+            ),
+            required: false,
+            doc: Some(
+                "The list of custom fields for the transaction. Duplicate custom field names are disallowed.",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+    ],
+}
