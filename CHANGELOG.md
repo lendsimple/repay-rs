@@ -10,6 +10,8 @@ the crates follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Published as `repay-gateway` (imported as `repay`) and `repay-gateway-derive`.
+
 - The Repay Gateway API's Swagger specifications, public and internal, vendored in
   `schema/`.
 - `types::Amount`, an exact money amount sent as a JSON number and read from a

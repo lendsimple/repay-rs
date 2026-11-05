@@ -563,7 +563,21 @@ let page: Json = client.ach_reporting().query(&AchTransactionQuery::builder()
 
 **Tests**: README doctests; the packaged-crate test.
 
-**Status**: Not Started
+**Status**: In Progress — the work is done and checked locally; CI has not run on GitHub (the repository has no remote yet), and the sandbox tests await credentials.
+
+**Notes (as built)**:
+- **Crate name:** `repay` is taken on crates.io (an unrelated 2017 CLI crate). Decided with the user: the packages are `repay-gateway` and `repay-gateway-derive`, with `[lib] name = "repay"` / `"repay_derive"`, so code still says `use repay::…` and the derive's `::repay::` paths are unchanged. Directories stay `repay/` and `repay-derive/`.
+- **README:** at the root, with `repay/README.md` a symlink to it, as in authorizenet. Its five Rust examples compile as doctests through `ReadmeDoctests` (`cfg(all(doctest, feature = "reqwest", feature = "ureq"))`). `repay-derive` has a short README of its own.
+- **Release:** `RELEASING.md` and `release.yml` are adapted from authorizenet: a published GitHub Release triggers the tag/version and CHANGELOG checks, `codegen --check`, the tests, then `cargo publish --workspace` with trusted publishing and a `CARGO_REGISTRY_TOKEN` fallback for the first release. `RELEASING.md` adds `cargo xtask drift` to the pre-release checks.
+- **CI:** added the `package` (`cargo publish --dry-run --workspace`), `package-tests` (`scripts/test-packaged-crate.sh`) and `docs-rs` (nightly, `--cfg docsrs`) jobs; dependabot updates the SHA-pinned actions weekly. Nightly `doc_cfg` labels the feature-gated transports with no extra attributes.
+- **Checked locally:**
+  - `cargo publish --dry-run --workspace` packages and builds both crates;
+  - the packaged-crate script passes 211 tests (the UI snapshots skip outside the repository, by design);
+  - the full feature matrix, MSRV, minimal-versions, wasm, docs (default, none and all features, plus nightly docs.rs) and deny all pass.
+- **Remaining:**
+  - push to `github.com/lendsimple/repay-rs` and get CI green;
+  - run the sandbox tests and resolve the open items below;
+  - then follow `RELEASING.md` for 0.1.0.
 
 ## Verification (end-to-end)
 1. `cargo xtask codegen --check`
