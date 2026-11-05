@@ -17,13 +17,22 @@ The files are kept byte for byte as served (see `.gitattributes`).
 
 ## Updating
 
-1. Download both files over the vendored ones:
+1. Compare the vendored files with the live specs:
 
    ```sh
-   curl -fsS -o schema/repay-v1.json https://api.sandbox.repayonline.com/rgapi/v1/swagger
-   curl -fsS -o schema/repay-v1-internal.json https://api.sandbox.repayonline.com/rgapi/v1-internal/swagger
+   cargo xtask drift
    ```
 
-2. Update the dates and checksums above (`shasum -a 256 schema/*.json`).
-3. Regenerate the schema code and review the diff, and record user-visible changes in
-   `CHANGELOG.md`.
+   It lists the operations and definitions added, removed or changed. Response
+   examples are ignored: the server fills in their dates each time it serves a spec.
+
+2. Download the specs that changed, which also updates the dates and checksums
+   above:
+
+   ```sh
+   cargo xtask fetch
+   ```
+
+3. Regenerate the schema code with `cargo xtask codegen`, fix anything
+   `schema/overrides.toml` now reports, review the diff, and record user-visible
+   changes in `CHANGELOG.md`.

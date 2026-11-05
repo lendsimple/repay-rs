@@ -15,8 +15,10 @@ proc-macro2 = "1.0.107"
 quote = "1.0.47"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
+sha2 = "0.11.1"
 syn = { version = "3.0.6", features = ["full"] }
 toml = "1.1.7"
+ureq = "3.4.2"
 
 [dev-dependencies]
 insta = "1.49.0"

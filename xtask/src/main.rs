@@ -1,5 +1,6 @@
 //! Development tasks: `cargo xtask <task>`.
 
+mod drift;
 mod emit;
 mod model;
 mod swagger;
@@ -11,10 +12,14 @@ const USAGE: &str = "usage: cargo xtask <task>
 
 tasks:
     codegen [--check]   generate the schema code from schema/*.json
-                        (--check: fail if the committed files are out of date)";
+                        (--check: fail if the committed files are out of date)
+    fetch               download the specs from the sandbox over schema/*.json,
+                        updating schema/README.md
+    drift               list the operations and definitions that differ between
+                        schema/*.json and the specs the sandbox serves";
 
 /// The vendored specs, public first.
-const SPECS: [&str; 2] = ["repay-v1.json", "repay-v1-internal.json"];
+const SPECS: [&str; 2] = [drift::SOURCES[0].0, drift::SOURCES[1].0];
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -28,6 +33,8 @@ fn main() -> ExitCode {
     {
         ["codegen"] => codegen(false),
         ["codegen", "--check"] => codegen(true),
+        ["fetch"] => fetch(),
+        ["drift"] => drift(),
         _ => {
             eprintln!("{USAGE}");
             return ExitCode::FAILURE;
@@ -97,6 +104,48 @@ fn codegen(check: bool) -> Result<()> {
             std::fs::write(&path, contents)?;
             println!("wrote {}", path.display());
         }
+    }
+    Ok(())
+}
+
+fn fetch() -> Result<()> {
+    let dir = workspace_root().join("schema");
+    let readme_path = dir.join("README.md");
+    let mut readme = read(&readme_path)?;
+    for (file, url) in drift::SOURCES {
+        let live = drift::download(url)?;
+        swagger::Spec::parse(&live).map_err(|e| format!("{url}: {e}"))?;
+        let path = dir.join(file);
+        if drift::report(&[&read(&path)?], &[&live])?.is_none() {
+            println!("{file} is up to date");
+            continue;
+        }
+        std::fs::write(&path, &live)?;
+        readme = drift::update_readme(
+            &readme,
+            file,
+            &drift::today(),
+            &drift::sha256_hex(live.as_bytes()),
+        )?;
+        println!("wrote {}", path.display());
+    }
+    std::fs::write(&readme_path, readme)?;
+    Ok(())
+}
+
+fn drift() -> Result<()> {
+    let dir = workspace_root().join("schema");
+    let mut vendored = Vec::new();
+    let mut live = Vec::new();
+    for (file, url) in drift::SOURCES {
+        vendored.push(read(&dir.join(file))?);
+        live.push(drift::download(url)?);
+    }
+    let vendored: Vec<&str> = vendored.iter().map(String::as_str).collect();
+    let live: Vec<&str> = live.iter().map(String::as_str).collect();
+    match drift::report(&vendored, &live)? {
+        None => println!("the vendored specs match the sandbox"),
+        Some(report) => print!("{report}"),
     }
     Ok(())
 }
