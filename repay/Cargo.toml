@@ -56,3 +56,19 @@ required-features = ["reqwest"]
 [[example]]
 name = "card_sale_blocking"
 required-features = ["ureq"]
+
+[[example]]
+name = "ach_sale"
+required-features = ["reqwest"]
+
+[[example]]
+name = "card_tokens"
+required-features = ["reqwest"]
+
+[[example]]
+name = "customers"
+required-features = ["reqwest"]
+
+[[example]]
+name = "bulk_adjustment"
+required-features = ["reqwest"]

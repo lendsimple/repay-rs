@@ -24,13 +24,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let client = builder.build();
 
-    let sale = CardSaleRequest::builder()
-        .amount(Amount::from(dec!(19.99)))
-        .card_number("4111111111111111")
-        .exp_date(ExpDate::new(12, 2030)?)
-        .cvv("123")
-        .invoice_id("repay-rs-example")
-        .build();
+    let mut sale = CardSaleRequest::keyed(
+        Amount::from(dec!(19.99)),
+        "4111111111111111",
+        ExpDate::new(12, 2030)?,
+    )
+    .with_cvv("123");
+    sale.invoice_id = Some("repay-rs-example".into());
     let detail = client.card_transactions().sale(&sale).await?;
     println!(
         "transaction {:?}: {:?}",
