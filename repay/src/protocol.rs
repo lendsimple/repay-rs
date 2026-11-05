@@ -53,11 +53,11 @@ pub const DEFAULT_API_VERSION: &str = "1";
 /// sends it.
 #[derive(Debug, Clone)]
 pub struct Context {
-    credentials: Credentials,
-    environment: Environment,
-    api_version: String,
-    merchant_id: Option<MerchantId>,
-    user_agent: String,
+    pub(crate) credentials: Credentials,
+    pub(crate) environment: Environment,
+    pub(crate) api_version: String,
+    pub(crate) merchant_id: Option<MerchantId>,
+    pub(crate) user_agent: String,
 }
 
 impl Context {
@@ -186,6 +186,7 @@ pub fn encode_unvalidated<O: Operation>(op: &O, context: &Context) -> Result<Htt
         url,
         headers,
         body,
+        timeout: None,
     })
 }
 

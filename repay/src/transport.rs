@@ -1,10 +1,40 @@
-//! The HTTP requests and responses the protocol encodes and decodes.
+//! How the clients send requests over HTTP.
 //!
 //! [`protocol::encode`](crate::protocol::encode) turns an operation into an
-//! [`HttpRequest`]; any HTTP client can send it, and
-//! [`protocol::decode`](crate::protocol::decode) reads the [`HttpResponse`].
+//! [`HttpRequest`]; a [`Transport`] sends it and returns the [`HttpResponse`],
+//! which [`protocol::decode`](crate::protocol::decode) reads. Everything else
+//! (encoding, validation, decoding, logging) stays in the client.
+//!
+//! The async [`Client`](crate::Client) uses a [`Transport`], by default
+//! `ReqwestTransport` (with the `reqwest` feature); the
+//! [`blocking::Client`](crate::blocking::Client) uses a
+//! [`blocking::Transport`](crate::blocking::Transport), by default `UreqTransport`
+//! (with the `ureq` feature). On WebAssembly, `ReqwestTransport` uses the
+//! JavaScript `fetch` API, and the traits do not require `Send`.
+//!
+//! To use another HTTP client, implement the trait:
+//!
+//! ```
+//! use repay::TransportError;
+//! use repay::transport::{HttpRequest, HttpResponse, Transport};
+//!
+//! struct MyTransport;
+//!
+//! impl Transport for MyTransport {
+//!     async fn send(&self, request: HttpRequest) -> Result<HttpResponse, TransportError> {
+//!         // Send `request.method` to `request.url` with `request.headers` and
+//!         // `request.body`, within `request.timeout`.
+//!         # let _ = request;
+//!         # Ok(HttpResponse::new(200, Vec::new(), Vec::new()))
+//!     }
+//! }
+//! ```
 
 use std::fmt;
+use std::future::Future;
+use std::time::Duration;
+
+use crate::error::TransportError;
 
 /// The HTTP methods the API uses.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -49,6 +79,9 @@ pub struct HttpRequest {
     pub headers: Vec<(&'static str, String)>,
     /// The body; empty when the request has none.
     pub body: Vec<u8>,
+    /// How long the request may take in total, including reading the response.
+    /// The clients always set it; `None` from [`protocol::encode`](crate::protocol::encode).
+    pub timeout: Option<Duration>,
 }
 
 impl HttpRequest {
@@ -79,6 +112,7 @@ impl fmt::Debug for HttpRequest {
             .field("url", &self.url)
             .field("headers", &headers)
             .field("body", &format_args!("{} bytes", self.body.len()))
+            .field("timeout", &self.timeout)
             .finish()
     }
 }
@@ -125,6 +159,110 @@ impl HttpResponse {
     }
 }
 
+/// Sends requests for the async [`Client`](crate::Client).
+///
+/// The future must be `Send`, so that client calls can be spawned on a
+/// multi-threaded runtime. (On WebAssembly, where there are no threads to send it
+/// to and `fetch` futures are not `Send`, it need not be.)
+///
+/// Return a [`TransportError`] only when no response was received (a connection,
+/// TLS or timeout failure); an HTTP error status is a response.
+#[cfg(not(target_arch = "wasm32"))]
+pub trait Transport: Send + Sync {
+    fn send(
+        &self,
+        request: HttpRequest,
+    ) -> impl Future<Output = Result<HttpResponse, TransportError>> + Send;
+}
+
+/// Sends requests for the async [`Client`](crate::Client).
+///
+/// On WebAssembly the future need not be `Send`: there are no threads to send it
+/// to, and JavaScript `fetch` futures are not `Send`.
+///
+/// Return a [`TransportError`] only when no response was received (a connection,
+/// TLS or timeout failure); an HTTP error status is a response.
+#[cfg(target_arch = "wasm32")]
+pub trait Transport {
+    fn send(
+        &self,
+        request: HttpRequest,
+    ) -> impl Future<Output = Result<HttpResponse, TransportError>>;
+}
+
+/// A [`Transport`] built on [reqwest](https://docs.rs/reqwest), which runs on
+/// tokio (or on `fetch` in WebAssembly).
+#[cfg(feature = "reqwest")]
+#[derive(Debug, Clone)]
+pub struct ReqwestTransport {
+    client: reqwest::Client,
+}
+
+#[cfg(feature = "reqwest")]
+impl Default for ReqwestTransport {
+    /// A transport with its own connection pool.
+    ///
+    /// # Panics
+    ///
+    /// Like `reqwest::Client::new`, if the TLS backend cannot be initialized.
+    fn default() -> Self {
+        Self {
+            client: reqwest::Client::new(),
+        }
+    }
+}
+
+#[cfg(feature = "reqwest")]
+impl From<reqwest::Client> for ReqwestTransport {
+    /// Uses an existing reqwest client, for example to share its connection pool
+    /// or proxy settings.
+    fn from(client: reqwest::Client) -> Self {
+        Self { client }
+    }
+}
+
+#[cfg(feature = "reqwest")]
+impl Transport for ReqwestTransport {
+    async fn send(&self, request: HttpRequest) -> Result<HttpResponse, TransportError> {
+        let error = |err: reqwest::Error| {
+            if err.is_timeout() {
+                TransportError::timeout(err)
+            } else {
+                TransportError::new(err)
+            }
+        };
+        let method = match request.method {
+            Method::Get => reqwest::Method::GET,
+            Method::Post => reqwest::Method::POST,
+            Method::Put => reqwest::Method::PUT,
+            Method::Patch => reqwest::Method::PATCH,
+            Method::Delete => reqwest::Method::DELETE,
+        };
+        let mut builder = self.client.request(method, &request.url);
+        for (name, value) in &request.headers {
+            builder = builder.header(*name, value);
+        }
+        if let Some(timeout) = request.timeout {
+            builder = builder.timeout(timeout);
+        }
+        if !request.body.is_empty() {
+            builder = builder.body(request.body);
+        }
+        let response = builder.send().await.map_err(error)?;
+        let status = response.status().as_u16();
+        let headers = response
+            .headers()
+            .iter()
+            .map(|(name, value)| {
+                let value = String::from_utf8_lossy(value.as_bytes()).into_owned();
+                (name.as_str().to_owned(), value)
+            })
+            .collect();
+        let body = response.bytes().await.map_err(error)?;
+        Ok(HttpResponse::new(status, headers, body.to_vec()))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -139,6 +277,7 @@ mod tests {
                 ("rg-api-secure-token", "s3cret".into()),
             ],
             body: Vec::new(),
+            timeout: None,
         };
         let debug = format!("{request:?}");
         assert!(!debug.contains("s3cret"), "{debug}");

@@ -197,6 +197,208 @@ macro_rules! impl_operations {
 
 pub(crate) use impl_operations;
 
+/// Generates a client's resource handles and their methods, one per operation.
+///
+/// Arguments: `[Client, TransportTrait, async]` or `[Client, TransportTrait,
+/// blocking]`, then the table, where `Client<T>` has an `execute` method for any
+/// `T: TransportTrait`.
+macro_rules! resource_handles {
+    (
+        [$client:ident, $transport:path, $mode:ident]
+        $(
+            $resource:ident => $handle:ident {$(
+                $(#[doc = $doc:literal])*
+                $method:ident => $name:ident {
+                    id: $id:literal,
+                    method: $http:ident,
+                    path: $path:literal,
+                    path_params: {$(
+                        $(#[doc = $pdoc:literal])*
+                        $p:ident: $pty:ty = $pwire:literal,
+                    )*},
+                    query: [$($params:ident { $($query:tt)* })?],
+                    body: [$($body:ident $($bty:ty)?)?],
+                    merchant: $merchant:ident,
+                    response: $response:ident $($rty:ty)?,
+                    export: [$($export:ident $ewire:literal $export_method:ident)?],
+                    deprecated: $deprecated:tt,
+                }
+            )*}
+        )*
+    ) => {
+        impl<T: $transport> $client<T> {
+            $(
+                #[doc = concat!(
+                    "The `", stringify!($resource), "` operations: see [`", stringify!($handle), "`]."
+                )]
+                pub fn $resource(&self) -> $handle<'_, T> {
+                    $handle { client: self }
+                }
+            )*
+        }
+
+        $(
+            #[doc = concat!(
+                "The `", stringify!($resource), "` operations, from [`", stringify!($client),
+                "::", stringify!($resource), "`]."
+            )]
+            pub struct $handle<'a, T> {
+                client: &'a $client<T>,
+            }
+
+            impl<T> Clone for $handle<'_, T> {
+                fn clone(&self) -> Self {
+                    *self
+                }
+            }
+
+            impl<T> Copy for $handle<'_, T> {}
+
+            impl<T> ::core::fmt::Debug for $handle<'_, T> {
+                fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                    f.debug_struct(stringify!($handle)).finish_non_exhaustive()
+                }
+            }
+
+            impl<T: $transport> $handle<'_, T> {$(
+                $crate::operations::resource_handles!(@item $mode $deprecated
+                    [
+                        $(#[doc = $doc])*
+                        #[doc = ""]
+                        #[doc = concat!(
+                            "Sends [`", stringify!($resource), "::", stringify!($name),
+                            "`](crate::operations::", stringify!($resource), "::",
+                            stringify!($name), ")."
+                        )]
+                    ]
+                    pub fn $method(
+                        &self,
+                        $($p: impl ::core::convert::Into<$pty>,)*
+                        $(body: &$crate::operations::impl_operations!(@body_ty $body $($bty)?),)?
+                        $(params: &$crate::operations::$resource::$params,)?
+                    ) -> ::core::result::Result<
+                        $crate::operations::impl_operations!(@response_ty $response $($rty)?),
+                        $crate::Error,
+                    > {
+                        #[allow(deprecated)]
+                        let op = $crate::operations::$resource::$name::new(
+                            $($p,)*
+                            $($crate::operations::impl_operations!(@id body $body),)?
+                            $($crate::operations::impl_operations!(@id params $params),)?
+                        );
+                        $crate::operations::resource_handles!(@await $mode self.client.execute(&op))
+                    }
+                );
+
+                $crate::operations::resource_handles!(@export [$($export $export_method)?]
+                    $mode $deprecated $resource $name
+                    [$($p: $pty,)*]
+                    [$(body: &$crate::operations::impl_operations!(@body_ty $body $($bty)?),)?]
+                    [$(params: &$crate::operations::$resource::$params,)?]
+                    [
+                        $($p,)*
+                        $($crate::operations::impl_operations!(@id body $body),)?
+                        $($crate::operations::impl_operations!(@id params $params),)?
+                    ]
+                );
+            )*}
+        )*
+    };
+
+    (@export [] $($rest:tt)*) => {};
+
+    // The file of a report that has a `format` parameter.
+    (@export [format $method:ident] $mode:ident $deprecated:tt $resource:ident $name:ident
+        [$($p:ident: $pty:ty,)*] [$($body:tt)*] [$($params:tt)*] [$($arg:tt)*]
+    ) => {
+        $crate::operations::resource_handles!(@item $mode $deprecated
+            [
+                #[doc = concat!(
+                    "Sends [`", stringify!($resource), "::", stringify!($name),
+                    "`](crate::operations::", stringify!($resource), "::", stringify!($name),
+                    ") for a file in `format` (CSV, Excel or PDF), instead of JSON."
+                )]
+            ]
+            pub fn $method(
+                &self,
+                $($p: impl ::core::convert::Into<$pty>,)*
+                $($body)*
+                $($params)*
+                format: $crate::ExportFormat,
+            ) -> ::core::result::Result<$crate::types::Download, $crate::Error> {
+                #[allow(deprecated)]
+                let op = $crate::operations::$resource::$name::new($($arg)*);
+                let export = $crate::Export::new(&op, format);
+                $crate::operations::resource_handles!(@await $mode self.client.execute(&export))
+            }
+        );
+    };
+
+    // The PDF of an operation whose `pdf` flag switches from JSON.
+    (@export [pdf $method:ident] $mode:ident $deprecated:tt $resource:ident $name:ident
+        [$($p:ident: $pty:ty,)*] [$($body:tt)*] [$($params:tt)*] [$($arg:tt)*]
+    ) => {
+        $crate::operations::resource_handles!(@item $mode $deprecated
+            [
+                #[doc = concat!(
+                    "Sends [`", stringify!($resource), "::", stringify!($name),
+                    "`](crate::operations::", stringify!($resource), "::", stringify!($name),
+                    ") for the PDF, instead of JSON."
+                )]
+            ]
+            pub fn $method(
+                &self,
+                $($p: impl ::core::convert::Into<$pty>,)*
+                $($body)*
+                $($params)*
+            ) -> ::core::result::Result<$crate::types::Download, $crate::Error> {
+                #[allow(deprecated)]
+                let op = $crate::operations::$resource::$name::new($($arg)*);
+                let export = $crate::Export::new(&op, $crate::ExportFormat::Pdf);
+                $crate::operations::resource_handles!(@await $mode self.client.execute(&export))
+            }
+        );
+    };
+
+    (@item async $deprecated:tt [$($attr:tt)*] pub fn $($rest:tt)*) => {
+        $crate::operations::impl_operations!(@deprecated $deprecated
+            $($attr)* pub async fn $($rest)*
+        );
+    };
+    (@item blocking $deprecated:tt [$($attr:tt)*] pub fn $($rest:tt)*) => {
+        $crate::operations::impl_operations!(@deprecated $deprecated
+            $($attr)* pub fn $($rest)*
+        );
+    };
+
+    (@await async $($call:tt)*) => { $($call)*.await };
+    (@await blocking $($call:tt)*) => { $($call)* };
+}
+
+pub(crate) use resource_handles;
+
+/// `resource_handles!` for the async [`Client`](crate::Client).
+macro_rules! async_handles {
+    ($($table:tt)*) => {
+        $crate::operations::resource_handles!(
+            [Client, $crate::transport::Transport, async] $($table)*
+        );
+    };
+}
+
+pub(crate) use async_handles;
+
+/// `resource_handles!` for the [`blocking::Client`](crate::blocking::Client).
+macro_rules! blocking_handles {
+    ($($table:tt)*) => {
+        $crate::operations::resource_handles!(
+            [Client, $crate::blocking::Transport, blocking] $($table)*
+        );
+    };
+}
+
+pub(crate) use blocking_handles;
+
 crate::schema::operations::operation_table!(impl_operations);
 
 #[cfg(test)]

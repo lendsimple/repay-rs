@@ -19,13 +19,31 @@ rustdoc-args = ["--cfg", "docsrs"]
 bon = "3.10.2"
 # Exact: the derive's output calls this crate's hidden internals.
 repay-derive = { version = "=0.1.0", path = "../repay-derive" }
+reqwest = { version = "0.13.5", default-features = false, optional = true }
 rust_decimal = { version = "1.43.0", features = ["macros"] }
 secrecy = "0.10.3"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 thiserror = "2.0.21"
 time = { version = "0.3.55", features = ["parsing", "formatting", "macros"] }
+tracing = "0.1.44"
+ureq = { version = "3.4.2", default-features = false, optional = true }
 
 [dev-dependencies]
 insta = "1.49.0"
+mockito = "1.7.2"
+tokio = { version = "1.53.2", features = ["macros", "rt-multi-thread"] }
+tracing-subscriber = "0.3.23"
 trybuild = "1.0.122"
+
+[features]
+default = ["reqwest", "rustls"]
+## `ReqwestTransport`, the async `Client`'s default transport (runs on tokio, or
+## on `fetch` in WebAssembly).
+reqwest = ["dep:reqwest"]
+## `blocking::UreqTransport`, the blocking `Client`'s default transport.
+ureq = ["dep:ureq"]
+## TLS with rustls.
+rustls = ["reqwest?/rustls", "ureq?/rustls"]
+## TLS with the platform's native library.
+native-tls = ["reqwest?/native-tls", "ureq?/native-tls"]

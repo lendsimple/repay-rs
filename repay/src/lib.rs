@@ -22,6 +22,9 @@
 // Lets derived code refer to `::repay::...` inside this crate too.
 extern crate self as repay;
 
+pub mod blocking;
+pub mod client;
+mod config;
 mod credentials;
 mod error;
 mod macros;
@@ -35,9 +38,12 @@ pub mod transport;
 pub mod types;
 pub mod validate;
 
+pub use client::{Client, ClientBuilder};
+pub use config::DEFAULT_TIMEOUT;
 pub use credentials::{Credentials, Environment, PRODUCTION_URL, SANDBOX_URL};
 pub use error::{ApiError, Error, TransportError};
 pub use operation::{Body, Export, ExportFormat, Exportable, MerchantHeader, Operation};
+pub use protocol::{DEFAULT_API_VERSION, DEFAULT_USER_AGENT};
 
 pub use rust_decimal::{Decimal, dec};
 
