@@ -20,10 +20,12 @@ bon = "3.10.2"
 # Exact: the derive's output calls this crate's hidden internals.
 repay-derive = { version = "=0.1.0", path = "../repay-derive" }
 rust_decimal = { version = "1.43.0", features = ["macros"] }
+secrecy = "0.10.3"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 thiserror = "2.0.21"
 time = { version = "0.3.55", features = ["parsing", "formatting", "macros"] }
 
 [dev-dependencies]
+insta = "1.49.0"
 trybuild = "1.0.122"

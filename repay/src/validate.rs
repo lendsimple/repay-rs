@@ -59,6 +59,15 @@ impl ValidationError {
     pub fn violations(&self) -> &[Violation] {
         &self.violations
     }
+
+    /// The error for `violations`, or `None` if there are none.
+    pub(crate) fn from_violations(violations: Vec<Violation>) -> Option<Self> {
+        (!violations.is_empty()).then_some(Self { violations })
+    }
+
+    pub(crate) fn into_violations(self) -> Vec<Violation> {
+        self.violations
+    }
 }
 
 impl fmt::Display for ValidationError {
