@@ -45,3 +45,12 @@ the crates follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Both accept a custom `Transport`, act for a merchant (`merchant_id`,
   `with_merchant_id`), and log through `tracing` with card data and the secure
   token redacted.
+- Validation that a request sets exactly one payment source (a card number with
+  its expiration date, a token, or device data; a bank account or an ACH token),
+  and shortcuts that build such requests: `CardSaleRequest::keyed`,
+  `CardSaleRequest::token`, `AchSaleRequest::account` and others.
+- `bulk`: `BulkAdjustment` and `BulkReversal` build the CSV uploads, and the bulk
+  operations answer a `BulkOutcome`, either the JSON result or a `CsvReport` of
+  the rows that failed.
+- Examples for card sales, ACH sales, card tokens, customers and bulk
+  adjustments, and sandbox tests (ignored unless credentials are set).

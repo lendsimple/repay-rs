@@ -517,15 +517,37 @@ let page: Json = client.ach_reporting().query(&AchTransactionQuery::builder()
 
 **Success Criteria**:
 - The multipart body is byte-exact against a golden file, and the boundary never appears in the content.
-- Sandbox tests pass when `REPAY_API_USER`, `REPAY_SECURE_TOKEN` and `REPAY_MERCHANT_ID` are set. They panic if the variables are missing.
+- Sandbox tests pass when `REPAY_API_USER`, `REPAY_SECURE_TOKEN` and `REPAY_MERCHANT_ID` are set. They panic if the variables are missing. (Written and compiled; not yet run, because there are no credentials here. The user runs them.)
 
 **Tests**:
 - Multipart golden; CSV report parsing with error rows.
 - Export Content-Disposition filename parsing.
-- Each source enum serializes the right flattened fields.
+- ~~Each source enum serializes the right flattened fields.~~ Replaced by `one_of` validation and shortcut tests (decided with the user).
 - Sandbox: sale → capture → refund → void; token create/get/delete; health.
 
-**Status**: Not Started
+**Status**: Complete (sandbox run pending)
+
+**Notes (as built)**:
+- **Payment sources (decided with the user):** no flattened source enums, and the derive has no enum support.
+  - **`[one_of]`:** a codegen section emits a container attribute such as `#[repay(one_of = "card_number exp_date | card_token | device_card_data | magnetic_stripe_data")]`, and the derive generates `validate::check_one_of`. Exactly one group's key (its first field) must be set, and then the rest of that group. Messages: `set exactly one of card_number, card_token, device_card_data or magnetic_stripe_data[, not a and b]` and `exp_date: is required with card_number`.
+  - **Covered:** card sale, auth, unlinked refund, disbursement, account validation, and the 5 ACH requests.
+  - **Excluded:** `CreateCardTokenRequest`, because the token *update* operations reuse it with only an expiry.
+  - **Derive:** it now accepts this container attribute (any other container attribute is an error), with UI tests.
+- **Shortcuts (`schema/ext.rs`):**
+  - `CardSaleRequest`/`CardAuthRequest::{keyed, token, device}` and `.with_cvv`;
+  - `UnlinkedCardRefundRequest::{keyed, token}`;
+  - `CardDisbursementRequest::{keyed, token, device}`;
+  - `{AchSale, AchCredit, AchRebill}Request::{account(amount, AchAccount), token(amount, token)}`, and the prenotes without an amount;
+  - `AchAccount`, whose `Debug` hides the account number.
+  - They return the value, not a builder; fields are public for adjusting.
+- **Bulk (`repay::bulk`):**
+  - `BulkAdjustment` (`row`, then `to_upload() -> Result<Upload, ValidationError>`, checked like the API: at least one row, positive amounts, adjustment ≤ original, no duplicate merchant/transaction);
+  - `BulkReversal` (a `TransactionId` column, assumed);
+  - `BulkOutcome::{Completed(Json), Failed(CsvReport)}`; `CsvReport` has `headers`, `rows`, `column`, `get(row, name)` and `raw`, and reads with the `csv` crate.
+  - The `response = "download" | "bulk"` override replaces `download = true`; both bulk operations are `bulk` and send `Accept: */*`.
+- **Dropped:** `Paging` and the cursor helper. The generated `*Params` structs already carry `skip`/`take`/`cursor`.
+- **Examples:** `card_sale` and `card_sale_blocking` (now using shortcuts), `ach_sale`, `card_tokens`, `customers`, `bulk_adjustment`.
+- **Sandbox (`tests/sandbox.rs`):** health, sale→void, auth→capture→refund, token create/get/delete, search plus CSV export, an API validation error, and the blocking client. They print what they learn for the open items.
 
 ## Stage 6: Hardening, docs, release prep
 **Goal**:
@@ -559,7 +581,8 @@ let page: Json = client.ach_reporting().query(&AchTransactionQuery::builder()
 - Does `ContractRequest.status` serialize as a string or an int?
 - Is `card_token` in requests a string or a number?
 - Does `/digitalwallet/merchants/{id}` also require the query duplicate?
-- The multipart form field name for the CSV file (we assume `file`), and the exact CSV report columns.
+- The multipart form field name for the CSV file (we assume `file`), the exact CSV report columns, and the bulk reversal file's column (we assume `TransactionId`, and that it answers JSON or a CSV like the adjustments).
+- The card token response's key field (the `card_tokens` example and sandbox test read `card_token_key`).
 - The real shape of `BulkTransactionProcessingResult` (kept as `Json` for now).
 - The `date-time` format the server accepts in query parameters (we assume RFC 3339 / ISO 8601 without an offset).
 - Exports send `Accept: */*`; confirm the server honours `format` with that, and which formats each report supports.
