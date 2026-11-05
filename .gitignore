@@ -1,1 +1,11 @@
 /target
+
+# Credentials for the sandbox tests (REPAY_API_USER, REPAY_SECURE_TOKEN, ...).
+.env
+.env.*
+
+# Snapshots insta writes when a snapshot test fails, pending review.
+*.snap.new
+*.pending-snap
+
+.DS_Store
