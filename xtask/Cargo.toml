@@ -9,7 +9,7 @@ rust-version.workspace = true
 
 [dependencies]
 heck = "0.5.0"
-indexmap = { version = "2", features = ["serde"] }
+indexmap = { version = "2.14.2", features = ["serde"] }
 prettyplease = "0.3.0"
 proc-macro2 = "1.0.107"
 quote = "1.0.47"

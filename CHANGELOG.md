@@ -27,3 +27,7 @@ the crates follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   schema's patterns.
 - `repay-derive`, whose `Model` derive implements `Validate` and a `Debug` that
   redacts card numbers and other secrets.
+- `schema`: every request and response type of the API, generated from the specs.
+  Requests have builders and check the spec's constraints; responses accept
+  `null` for any field and ignore fields they do not know. Enums keep values they
+  do not list in `Other`.

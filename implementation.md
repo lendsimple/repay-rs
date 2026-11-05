@@ -337,7 +337,7 @@ let page: Json = client.ach_reporting().query(&AchTransactionQuery::builder()
 - **Amount strings:** `AmountString` keeps its scale (`"1.50"`).
 - **`DateTime` formatting:** `From<PrimitiveDateTime>` writes fractional seconds only when it has any.
 - **`ExpDate` ordering:** `ExpDate` orders chronologically.
-- **`string_enum!` warnings:** it is `#[allow(unused_macros)]` until the generated schema uses it.
+- **`string_enum!` warnings:** it was `#[allow(unused_macros)]` until the generated schema used it (the allow was removed in Stage 2).
 - **CI jobs:** fmt (plus the LICENSE copies), clippy, test (3 OS), msrv 1.88, minimal-versions, wasm (both targets), docs, deny. Feature-matrix, codegen and package jobs come in later stages.
 
 ## Stage 2: Swagger codegen
@@ -356,7 +356,47 @@ let page: Json = client.ach_reporting().query(&AchTransactionQuery::builder()
 - A stale override fails.
 - `--check` detects a hand edit.
 
-**Status**: Not Started
+**Status**: Complete
+
+**Notes (as built)**:
+- **xtask layout:** `swagger.rs` (serde for the Swagger subset, `deny_unknown_fields`, merge), `model.rs` (IR + overrides), `emit.rs`, `drift.rs` (`fetch`/`drift`). Properties keep spec order (indexmap).
+- **Counts:** 133 definitions → 128 structs + 5 skipped; 20 enums; 138 operations in 20 resources.
+- **Generic reports:** `TransactionsReportResponse[X]` becomes two concrete structs, `ReconciliationCardTransactionsReport` and `RegionalTransactionDetailReport`, rather than `<T>`: the derive rejects generics, and concrete is simpler.
+- **Source enums deferred:** `AchSaleRequest` and the other ACH/card requests have their "alternative" fields made optional through `[required.remove]`. `CardSource`/`AchSource` come in Stage 5, together with enum support in the derive.
+- **Roles:** a definition is Request, Response or Both by reachability.
+  - Requests: `Serialize + Model + bon::Builder` (`on(String, into)`), `Option` fields skipped when `None`, `Vec` fields defaulted and skipped when empty.
+  - Responses: `Deserialize + Default + Model`, every field `Option` (arrays too).
+  - Both (the 6 fraud-velocity definitions): both derives.
+  - Facets (`max_length`, rules, …) are emitted only for requests, and lengths and rules only on `String` fields. Responses get `sensitive` only.
+- **Retyping (`overrides.toml`):**
+  - `[retype.by_name]` applies only where the spec's type fits the target (an ID to integers, `Amount` to numbers). That is how the ACH void's string `transaction_id` stays a `String`.
+  - `[retype.requests]` (`exp_date` → `ExpDate`, `card_token` → `String`) applies to requests only, so that a response never fails on an unexpected format.
+  - `[retype.fields]` makes `CardSaleRequest.surcharge`/`CardAuthRequest.surcharge` `AmountString`.
+- **Enums:** `[enums]` maps each enum name to the properties that share it; an unnamed enum property, or two properties with different values under one name, is an error. `"0"/"1"` values get names from `[enum_variants]`.
+- **Response type:** taken from the first 2xx with a `$ref` or an array (so the 202 batch close and the 201 template create are typed with no override). Otherwise `Json`; no schema → `()`.
+- **Bodies:** the two fraud-velocity merchant bodies stay `Vec<i32>` (they are merchant keys, not transaction IDs).
+- **Docs:** cleaned of `\r\n`, entities, the .NET XML doc tags (`<list>`, `<item>`, `<para>`, `<b>`) and `{Namespace.Type}` references, and "Gets or sets" is dropped. Markup is escaped outside code spans.
+- **`operation_table!` format** (the input of Stage 3's macros), one block per resource:
+  ```rust
+  card_transactions {
+      /// docs
+      capture {
+          id: "CardTransactions_ProcessCapture",
+          method: POST,
+          path: "/transactions/card/{transaction_id}/capture",
+          path_params: { transaction_id: $crate::types::TransactionId = "transaction_id", },
+          query: { start_date: $crate::types::DateTime = "query.start_date", custom_fields: ::std::vec::Vec<::std::string::String> = "query.custom_fields" multi, },
+          body: json($crate::schema::CardCaptureRequest),   // or `none`, `multipart`
+          merchant: optional,                                 // or `none`, `required`
+          response: $crate::schema::TransactionDetailCardResponse, // or `$crate::types::Json`, `()`
+          export: false,
+          deprecated: false,
+      }
+  }
+  ```
+  Every key is always present and types are fully qualified. The `format` parameter is removed and sets `export: true`. Path placeholders keep the wire names (`{request.wallet_merchant_id}`). A test-only consumer in `schema/mod.rs` checks that every type resolves and that IDs and routes are unique.
+- **`fetch`/`drift`:** they ignore response `examples`, because the server stamps the current time into one example on every request. `drift` found no other changes on 2026-11-04.
+- **Generated files:** `#[rustfmt::skip]` in `schema/mod.rs`, `linguist-generated` in `.gitattributes`, and a CI `codegen` job.
 
 ## Stage 3: Operations DSL, sans-IO protocol, errors
 **Goal**:
@@ -450,4 +490,6 @@ let page: Json = client.ach_reporting().query(&AchTransactionQuery::builder()
 - The multipart form field name for the CSV file (we assume `file`), and the exact CSV report columns.
 - The real shape of `BulkTransactionProcessingResult` (kept as `Json` for now).
 - The `date-time` format the server accepts in query parameters (we assume RFC 3339 / ISO 8601 without an offset).
+- `rg-merchant-id`: only 13 operations declare it, but many descriptions say "Reseller users must provide the MerchantId header" (card sale, capture, …). Stage 3 should probably send the configured merchant ID on every request, not only where the table says `optional`/`required`.
+- Declines: several descriptions say "Returns HTTP 200 if approved or HTTP 201 otherwise", so a 201 with a transaction body likely means declined.
 - Later: typing the ~73 `Json` responses (card/ACH tokens, customers, contracts, query pages) from captured fixtures, without breaking changes (we add `*_typed` methods or switch in 0.x).
