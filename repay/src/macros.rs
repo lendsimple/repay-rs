@@ -15,8 +15,6 @@
 ///     }
 /// }
 /// ```
-// Only the tests use it until the generated schema does.
-#[allow(unused_macros)]
 macro_rules! string_enum {
     (
         $(#[$meta:meta])*
@@ -204,9 +202,7 @@ macro_rules! string_id {
     )+};
 }
 
-#[allow(unused_imports)]
-pub(crate) use string_enum;
-pub(crate) use {int_id, string_id};
+pub(crate) use {int_id, string_enum, string_id};
 
 #[cfg(test)]
 mod tests {

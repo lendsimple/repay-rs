@@ -122,6 +122,9 @@ StructDef {
 }
 EnumDef {
     name: "State",
+    used_by: [
+        "Address.state",
+    ],
     variants: [
         Variant {
             name: "Unknown",
@@ -435,6 +438,9 @@ EnumDef {
 }
 EnumDef {
     name: "CountryCode",
+    used_by: [
+        "Address.country_code",
+    ],
     variants: [
         Variant {
             name: "Unknown",

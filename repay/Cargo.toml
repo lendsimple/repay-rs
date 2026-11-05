@@ -16,6 +16,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
+bon = "3.10.2"
 # Exact: the derive's output calls this crate's hidden internals.
 repay-derive = { version = "=0.1.0", path = "../repay-derive" }
 rust_decimal = { version = "1.43.0", features = ["macros"] }

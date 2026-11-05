@@ -1,0 +1,18 @@
+{
+  "transaction_id": 123456,
+  "merchant_id": "1234",
+  "auth_amount": 19.99,
+  "total_amount": 19.99,
+  "tip_amount": null,
+  "surcharge": 0.0,
+  "custom_fields": null,
+  "links": [],
+  "timestamp": "2026-11-04T10:15:30.1234567",
+  "date": "2026-11-04T10:15:30-05:00",
+  "result": "A",
+  "result_text": "APPROVED",
+  "approval_code": "123456",
+  "last4": "1111",
+  "voided": false,
+  "a_field_added_later": {"nested": true}
+}

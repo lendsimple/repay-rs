@@ -86,6 +86,9 @@ StructDef {
 }
 EnumDef {
     name: "StatusCode",
+    used_by: [
+        "ErrorResponse.status_code",
+    ],
     variants: [
         Variant {
             name: "Continue",

@@ -1,14 +1,16 @@
 //! A typed client for the Repay Gateway API (Repay Online).
 //!
-//! This release provides the values the schema is built on:
+//! This release provides the API's types:
 //!
+//! - [`schema`]: every request and response type, generated from the vendored
+//!   Swagger specs. Requests have builders.
 //! - [`types`]: exact money amounts, the API's dates and times, card expiration
 //!   dates, typed IDs, and the open-ended [`Json`](types::Json) and
 //!   [`Download`](types::Download) responses.
 //! - [`validate`]: checks of the schema's constraints, collecting every violation
 //!   with the path of the field.
 //!
-//! The schema's request and response types and the clients follow in later releases.
+//! The clients follow in later releases.
 
 // docs.rs builds with `--cfg docsrs` and labels items that need a feature.
 #![cfg_attr(docsrs, feature(doc_cfg))]
@@ -17,6 +19,7 @@
 extern crate self as repay;
 
 mod macros;
+pub mod schema;
 pub mod types;
 pub mod validate;
 

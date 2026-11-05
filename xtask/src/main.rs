@@ -1,5 +1,6 @@
 //! Development tasks: `cargo xtask <task>`.
 
+mod emit;
 mod model;
 mod swagger;
 
@@ -74,15 +75,41 @@ pub fn load_model() -> Result<model::Model> {
     Ok(model::build(&load_spec()?, &load_overrides()?)?)
 }
 
-fn codegen(_check: bool) -> Result<()> {
+fn codegen(check: bool) -> Result<()> {
     let model = load_model()?;
-    println!(
-        "{} types, {} enums, {} operations",
-        model.structs.len(),
-        model.enums.len(),
-        model.operations.len()
-    );
+    let out_dir = workspace_root().join("repay/src/schema");
+    let rendered = emit::render(&model);
+    let stale = stale_files(&rendered, &out_dir);
+    if check {
+        if !stale.is_empty() {
+            return Err(format!(
+                "generated code is out of date; run `cargo xtask codegen`:\n  {}",
+                stale.join("\n  ")
+            )
+            .into());
+        }
+        return Ok(());
+    }
+    std::fs::create_dir_all(&out_dir)?;
+    for (name, contents) in &rendered {
+        if stale.contains(name) {
+            let path = out_dir.join(name);
+            std::fs::write(&path, contents)?;
+            println!("wrote {}", path.display());
+        }
+    }
     Ok(())
+}
+
+/// The names of the rendered files whose committed copy in `dir` differs.
+fn stale_files<'a>(rendered: &[(&'a str, String)], dir: &Path) -> Vec<&'a str> {
+    rendered
+        .iter()
+        .filter(|(name, contents)| {
+            std::fs::read_to_string(dir.join(name)).ok().as_ref() != Some(contents)
+        })
+        .map(|(name, _)| *name)
+        .collect()
 }
 
 #[cfg(test)]
@@ -113,6 +140,20 @@ mod tests {
     fn operation(model: &Model, id: &str) -> String {
         let op = model.operations.iter().find(|o| o.id == id);
         format!("{:#?}", op.unwrap_or_else(|| panic!("no operation {id}")))
+    }
+
+    #[test]
+    fn stale_files_finds_missing_and_edited_files() {
+        let dir = std::env::temp_dir().join(format!("repay-xtask-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let rendered = [("a.rs", "a\n".to_owned()), ("b.rs", "b\n".to_owned())];
+        assert_eq!(stale_files(&rendered, &dir), ["a.rs", "b.rs"]);
+        std::fs::write(dir.join("a.rs"), "a\n").unwrap();
+        std::fs::write(dir.join("b.rs"), "b\n").unwrap();
+        assert!(stale_files(&rendered, &dir).is_empty());
+        std::fs::write(dir.join("b.rs"), "b, edited by hand\n").unwrap();
+        assert_eq!(stale_files(&rendered, &dir), ["b.rs"]);
+        std::fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]

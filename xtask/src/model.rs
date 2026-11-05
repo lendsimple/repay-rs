@@ -181,6 +181,8 @@ pub struct Facets {
 #[derive(Debug)]
 pub struct EnumDef {
     pub name: String,
+    /// The `Def.field` (or `OperationId.param`) properties that use it.
+    pub used_by: Vec<String>,
     pub variants: Vec<Variant>,
 }
 
@@ -550,12 +552,15 @@ impl<'a> Builder<'a> {
 
     fn facets(&mut self, prop: &Schema, ty: &Ty, context: &str) -> Result<Facets, String> {
         let prop = schema_scalar(prop);
-        let mut facets = Facets {
-            min_length: prop.min_length.filter(|n| *n > 0),
-            max_length: prop.max_length,
-            ..Facets::default()
-        };
-        if let Some(pattern) = &prop.pattern {
+        let mut facets = Facets::default();
+        // Lengths and patterns are checked on strings; a field retyped to, say,
+        // `ExpDate` enforces its own format.
+        let string = *ty.scalar() == Ty::String;
+        if string {
+            facets.min_length = prop.min_length.filter(|n| *n > 0);
+            facets.max_length = prop.max_length;
+        }
+        if let Some(pattern) = prop.pattern.as_ref().filter(|_| string) {
             let rule = self.ov.patterns.get(pattern).ok_or_else(|| {
                 format!("{context}: no rule for pattern {pattern:?} in [patterns]")
             })?;
@@ -772,6 +777,7 @@ impl<'a> Builder<'a> {
             }
             enums.push(EnumDef {
                 name: name.clone(),
+                used_by: self.ov.enums.get(name).cloned().unwrap_or_default(),
                 variants,
             });
         }

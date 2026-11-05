@@ -86,6 +86,8 @@ reversal_amount = "Amount"
 sale_amount = "Amount"
 settle_amount = "Amount"
 subtotal = "Amount"
+# A number in responses; `[retype.fields]` covers the requests that send a string.
+surcharge = "Amount"
 surcharge_amount = "Amount"
 tax = "Amount"
 tax_amount = "Amount"

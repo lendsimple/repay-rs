@@ -3,3 +3,8 @@
 *.rs text eol=lf
 *.snap text eol=lf
 *.stderr text eol=lf
+
+# Output of `cargo xtask codegen`; collapsed in diffs.
+repay/src/schema/enums.rs linguist-generated=true
+repay/src/schema/models.rs linguist-generated=true
+repay/src/schema/operations.rs linguist-generated=true
