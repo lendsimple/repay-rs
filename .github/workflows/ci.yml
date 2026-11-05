@@ -39,6 +39,15 @@ jobs:
 
   clippy:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        features:
+          - ""
+          - --no-default-features
+          - --no-default-features --features ureq,rustls
+          - --no-default-features --features reqwest,native-tls
+          - --all-features
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
@@ -46,7 +55,7 @@ jobs:
           toolchain: "stable"
           components: clippy
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
-      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo clippy --workspace --all-targets ${{ matrix.features }} -- -D warnings
 
   test:
     runs-on: ${{ matrix.os }}
@@ -54,13 +63,17 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        features:
+          - --all-features
+          - --no-default-features
+          - --no-default-features --features ureq,rustls
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
         with:
           toolchain: "stable"
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
-      - run: cargo test --workspace
+      - run: cargo test --workspace ${{ matrix.features }}
 
   msrv:
     runs-on: ubuntu-latest
@@ -74,7 +87,7 @@ jobs:
           key: msrv
       # Skip only the compile-error snapshot test, whose expected output follows
       # current stable rustc wording.
-      - run: cargo +1.88 test --workspace -- --skip derive_errors --exact
+      - run: cargo +1.88 test --workspace --all-features -- --skip derive_errors --exact
 
   minimal-versions:
     runs-on: ubuntu-latest
@@ -93,7 +106,7 @@ jobs:
       # so the floors in the manifests stay honest. Only the resolution needs
       # nightly; the tests run on stable.
       - run: cargo +nightly update -Z direct-minimal-versions
-      - run: cargo +stable test --workspace
+      - run: cargo +stable test --workspace --all-features
 
   wasm:
     runs-on: ubuntu-latest
@@ -107,9 +120,11 @@ jobs:
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           key: wasm
-      # Browsers and edge runtimes, and WASI.
-      - run: cargo clippy -p repay --lib --target wasm32-unknown-unknown -- -D warnings
-      - run: cargo clippy -p repay --lib --target wasm32-wasip2 -- -D warnings
+      # Browsers and edge runtimes: the library alone, and with reqwest (on fetch).
+      - run: cargo clippy -p repay --lib --target wasm32-unknown-unknown --no-default-features -- -D warnings
+      - run: cargo clippy -p repay --lib --target wasm32-unknown-unknown --no-default-features --features reqwest -- -D warnings
+      # WASI: the library with a custom transport (reqwest does not support WASI).
+      - run: cargo clippy -p repay --lib --target wasm32-wasip2 --no-default-features -- -D warnings
 
   codegen:
     runs-on: ubuntu-latest
@@ -129,7 +144,7 @@ jobs:
         with:
           toolchain: "stable"
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
-      - run: cargo doc --workspace --no-deps
+      - run: cargo doc --workspace --no-deps --all-features
         env:
           RUSTDOCFLAGS: -D warnings
 

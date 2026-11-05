@@ -464,14 +464,49 @@ let page: Json = client.ach_reporting().query(&AchTransactionQuery::builder()
 - The custom-transport test passes with no features.
 - `futures_are_send`.
 - wasm32-unknown-unknown builds (no features, and `reqwest`); wasm32-wasip2 builds (no features).
-- A `wasm-bindgen-test` smoke test with a fake transport runs under node.
+- ~~A `wasm-bindgen-test` smoke test with a fake transport runs under node.~~ Dropped (decided with the user): wasm is verified by clippy builds only, as in authorizenet-rs.
 
 **Tests**:
 - Per-operation case tables (`client_cases!`) checking method, path, headers and body.
 - Timeouts; connection failure; status errors; an invalid request is never sent.
 - Logs never contain the secure token, PAN or CVV.
 
-**Status**: Not Started
+**Status**: Complete
+
+**Notes (as built)**:
+- **Table additions:**
+  - each resource is `card_transactions => CardTransactions { … }`, naming its handle type;
+  - export entries name their client method: `[format "format" search_export]` or `[pdf "pdf" get_pdf]`. macro_rules cannot build identifiers.
+- **Transports (`repay::transport`):**
+  - `HttpRequest` gained `timeout: Option<Duration>`; `protocol::encode` leaves it `None` and the clients always set it.
+  - The async `Transport` and `blocking::Transport` take `HttpRequest` by value; they are `Send + Sync` on native and unbounded on wasm32.
+  - `ReqwestTransport` sends the method, headers, a body only when there is one, and a per-request timeout.
+  - `UreqTransport` builds an `http::Request` (with a `()` body when empty, so a GET has none), sets `http_status_as_error(false)` and `timeout_global`, and caps bodies at 100 MiB.
+- **Clients:**
+  - `Client<T = ReqwestTransport>` and `blocking::Client<T = UreqTransport>` hold `Arc<T>` + `Arc<Config>`.
+  - `with_merchant_id`/`without_merchant_id` return a client sharing the transport.
+  - `execute(&op)` runs any `Operation`, including `Export`.
+  - Builders share `common_builder_methods!`: `environment`, `api_version`, `merchant_id`, `timeout`, `user_agent`, `validate_requests`.
+  - `Config` (crate-private) wraps `protocol::Context`. `DEFAULT_TIMEOUT` is 60s.
+- **Handles:**
+  - `resource_handles!` is invoked via the `async_handles!`/`blocking_handles!` wrappers.
+  - Handle types live in `repay::client` and `repay::blocking` (for example, `repay::client::CardTransactions`).
+  - Each method takes path params (`impl Into<T>`), then `&body`, then `&NameParams` (always required; pass `&Default::default()`).
+  - Export siblings add `format: ExportFormat`; `*_pdf` methods take no format.
+  - Deprecated operations are `#[deprecated]` on both the type's `new` and the method.
+- **Logging:**
+  - `debug_span!("repay", operation = NAME)`.
+  - DEBUG logs the method and the URL, with sensitive query values (such as `query.card_number`) redacted.
+  - TRACE logs JSON bodies with every `SENSITIVE_FIELDS` key redacted at any depth; other bodies appear as `<n bytes of type>`.
+  - Headers are never logged.
+- **Features:** `default = ["reqwest", "rustls"]`, `ureq`, `rustls`, `native-tls` (weak `?/` deps).
+- **Tests:**
+  - `tests/common` has `MockApi`, which matches the method, path, exact query, credentials and user agent, and captures headers and body.
+  - `client_cases!` has 16 cases shared by `async_client.rs` and `blocking_client.rs`.
+  - `custom_transport.rs` runs with no features and no tokio.
+  - `logging.rs`; `futures_are_send`.
+- **Examples:** `card_sale` (reqwest) and `card_sale_blocking` (ureq) read `REPAY_API_USER`, `REPAY_SECURE_TOKEN` and `REPAY_MERCHANT_ID`. They have not yet been run against the sandbox.
+- **CI:** feature matrices for clippy and test; msrv, minimal-versions and docs use `--all-features`; wasm covers `wasm32-unknown-unknown` (none / `reqwest`) and `wasm32-wasip2` (none).
 
 ## Stage 5: Bulk, exports, ergonomics, sandbox
 **Goal**:

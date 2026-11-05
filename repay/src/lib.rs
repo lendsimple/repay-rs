@@ -1,7 +1,30 @@
 //! A typed client for the Repay Gateway API (Repay Online).
 //!
-//! This release provides the API's types and a protocol layer without I/O:
+//! ```no_run
+//! # #[cfg(feature = "reqwest")]
+//! # async fn run() -> Result<(), repay::Error> {
+//! use repay::schema::CardSaleRequest;
+//! use repay::types::{Amount, ExpDate};
+//! use repay::{Client, Credentials, dec};
 //!
+//! let client = Client::builder(Credentials::new("api-user", "secure-token"))
+//!     .merchant_id(1234)
+//!     .build();
+//! let sale = CardSaleRequest::builder()
+//!     .amount(Amount::from(dec!(19.99)))
+//!     .card_number("4111111111111111")
+//!     .exp_date(ExpDate::new(12, 2030).unwrap())
+//!     .build();
+//! let detail = client.card_transactions().sale(&sale).await?;
+//! println!("{:?}", detail.result_text);
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! - [`Client`]: the async client, sending requests with reqwest (feature
+//!   `reqwest`, on by default) or any [`Transport`](transport::Transport).
+//! - [`blocking::Client`]: the blocking client, with ureq (feature `ureq`) or any
+//!   [`blocking::Transport`].
 //! - [`operations`]: a type for every operation, such as
 //!   [`card_transactions::Capture`](operations::card_transactions::Capture).
 //! - [`protocol`]: [`encode`](protocol::encode) an operation as an HTTP request,
@@ -14,7 +37,9 @@
 //! - [`validate`]: checks of the schema's constraints, collecting every violation
 //!   with the path of the field.
 //!
-//! The clients follow in later releases.
+//! The secure token grants full access to the merchant's account: keep it on a
+//! server. The WebAssembly builds are for servers, edge workers and WASI hosts,
+//! not for browsers.
 
 // docs.rs builds with `--cfg docsrs` and labels items that need a feature.
 #![cfg_attr(docsrs, feature(doc_cfg))]

@@ -39,3 +39,9 @@ the crates follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   send requests.
 - `Credentials`, `Environment`, and `Error` with `ApiError` for the API's error
   responses.
+- `Client`, an async client (on reqwest by default, which also runs in
+  WebAssembly on `fetch`), and `blocking::Client` (on ureq, with the `ureq`
+  feature), with a method per operation: `client.card_transactions().sale(&sale)`.
+  Both accept a custom `Transport`, act for a merchant (`merchant_id`,
+  `with_merchant_id`), and log through `tracing` with card data and the secure
+  token redacted.
