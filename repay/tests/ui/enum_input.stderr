@@ -1,0 +1,5 @@
+error: Model can only be derived for structs with named fields
+ --> tests/ui/enum_input.rs:2:6
+  |
+2 | enum Source {
+  |      ^^^^^^

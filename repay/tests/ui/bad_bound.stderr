@@ -1,0 +1,5 @@
+error: expected a decimal number, such as "0" or "1.5"
+ --> tests/ui/bad_bound.rs:3:19
+  |
+3 |     #[repay(min = "zero")]
+  |                   ^^^^^^

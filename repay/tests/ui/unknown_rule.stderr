@@ -1,0 +1,5 @@
+error[E0425]: cannot find value `no_emoji` in module `::repay::validate::rules`
+ --> tests/ui/unknown_rule.rs:3:20
+  |
+3 |     #[repay(rule = "no_emoji")]
+  |                    ^^^^^^^^^^ not found in `::repay::validate::rules`

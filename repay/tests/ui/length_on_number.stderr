@@ -1,0 +1,5 @@
+error[E0277]: the trait bound `i32: AsRef<str>` is not satisfied
+ --> tests/ui/length_on_number.rs:4:15
+  |
+4 |     batch_id: i32,
+  |               ^^^ the trait `AsRef<str>` is not implemented for `i32`

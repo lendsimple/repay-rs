@@ -1,0 +1,12 @@
+[workspace]
+resolver = "3"
+members = ["repay", "repay-derive"]
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/lendsimple/repay-rs"
+authors = ["Michael Lavers <kolanos@gmail.com>"]
+version = "0.1.0"
+# The highest `rust-version` among the dependencies; let-chains need it too.
+rust-version = "1.88"
