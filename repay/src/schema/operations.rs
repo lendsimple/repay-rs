@@ -4,8 +4,9 @@
 
 /// Invokes `$callback!` with every operation, grouped by client resource.
 ///
-/// Every entry has the same keys in the same order. Types are written with
-/// full paths, so the expansion compiles in any module.
+/// Every entry has the same keys in the same order, and optional parts are
+/// bracketed lists of zero or one item. Types are written with full paths, so
+/// the expansion compiles in any module.
 macro_rules! operation_table {
     ($callback:ident) => {
         $callback! {
@@ -15,16 +16,16 @@ macro_rules! operation_table {
                 /// Creates an auth form record with sanitized HTML content. Optionally links to a single
                 /// transaction or contract at creation time. Returns HTTP 400 if both transaction\_id and
                 /// contract\_id are provided. If neither is provided, creates a standalone form.
-                create {
+                create => Create {
                     id: "AchAuthForm_CreateAuthRecord",
                     method: POST,
                     path: "/achauthforms",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CreateAchAuthRequest),
+                    query: [],
+                    body: [json $crate::schema::CreateAchAuthRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get an ACH authorization form by transaction or contract.
@@ -32,20 +33,23 @@ macro_rules! operation_table {
                 /// Retrieves the auth form linked to the specified transaction or contract. Exactly one of
                 /// transaction\_id or contract\_id must be provided. Returns HTTP 400 if neither or both are
                 /// specified. Supports PDF (default) or JSON output.
-                find {
+                find => Find {
                     id: "AchAuthForm_GetAuthRecordByTransactionOrContract",
                     method: GET,
                     path: "/achauthforms",
                     path_params: {},
-                    query: {
+                    query: [FindParams {
+                        /// Optional transaction ID (TRX\_HD\_Key) to look up the auth
+                        /// form by transaction association.
                         transaction_id: i32 = "transaction_id",
+                        /// Optional contract ID (Contract\_Key) to look up the auth form
+                        /// by contract association.
                         contract_id: i32 = "contract_id",
-                        pdf: bool = "pdf",
-                    },
-                    body: none,
+                    }],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [pdf "pdf"],
                     deprecated: false,
                 }
                 /// Get an ACH authorization form by ID.
@@ -53,20 +57,19 @@ macro_rules! operation_table {
                 /// Retrieves an auth form directly by its primary key. Returns HTTP 404 if not found, or
                 /// HTTP 403 if the user does not have access to the form's merchant. Supports PDF (default)
                 /// or JSON output.
-                get {
+                get => Get {
                     id: "AchAuthForm_GetAuthRecordById",
                     method: GET,
                     path: "/achauthforms/{auth_form_id}",
                     path_params: {
+                        /// The ACH\_Auth\_Form\_Key of the auth form to retrieve.
                         auth_form_id: $crate::types::AuthFormId = "auth_form_id",
                     },
-                    query: {
-                        pdf: bool = "pdf",
-                    },
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [pdf "pdf"],
                     deprecated: false,
                 }
                 /// Link a transaction to an existing ACH authorization form.
@@ -74,19 +77,22 @@ macro_rules! operation_table {
                 /// Adds a single transaction to the auth form without clearing existing associations. Returns
                 /// HTTP 404 if the auth form is not found. Returns the updated form with refreshed transaction
                 /// and contract IDs.
-                link_transaction {
+                link_transaction => LinkTransaction {
                     id: "AchAuthForm_CreateAuthFormIdTransaction",
                     method: POST,
                     path: "/achauthforms/{auth_form_id}/transactions/{transaction_id}",
                     path_params: {
+                        /// The ACH\_Auth\_Form\_Key of the auth form to link to.
                         auth_form_id: $crate::types::AuthFormId = "auth_form_id",
+                        /// The TRX\_HD\_Key of the transaction to add to the auth
+                        /// form.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Update associations for an ACH authorization form.
@@ -95,18 +101,19 @@ macro_rules! operation_table {
                 /// TransactionIds is provided, clears all existing transaction links and sets the new ones.
                 /// If ContractIds is provided, clears all existing contract links and sets the new ones. Both
                 /// can be updated in a single request. Null lists are skipped.
-                update {
+                update => Update {
                     id: "AchAuthForm_UpdateAuthRecord",
                     method: PUT,
                     path: "/achauthforms/{auth_form_id}",
                     path_params: {
+                        /// The ACH\_Auth\_Form\_Key of the auth form to update.
                         auth_form_id: $crate::types::AuthFormId = "auth_form_id",
                     },
-                    query: {},
-                    body: json($crate::schema::UpdateAchAuthRequest),
+                    query: [],
+                    body: [json $crate::schema::UpdateAchAuthRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Update the deferral date on an ACH authorization form.
@@ -115,18 +122,19 @@ macro_rules! operation_table {
                 /// payment has been deferred from the original date to the new deferral date. Both dates must
                 /// be in MM/dd/yyyy format. Returns HTTP 400 if dates are invalid, HTTP 404 if the auth form
                 /// is not found, or HTTP 500 on unexpected error.
-                update_deferral {
+                update_deferral => UpdateDeferral {
                     id: "AchAuthForm_DeferralUpdateAuthRecord",
                     method: PATCH,
                     path: "/achauthforms/{auth_form_id}",
                     path_params: {
+                        /// The ACH\_Auth\_Form\_Key of the auth form to update.
                         auth_form_id: $crate::types::AuthFormId = "auth_form_id",
                     },
-                    query: {},
-                    body: json($crate::schema::UpdateAchAuthFormDeferralDateRequest),
+                    query: [],
+                    body: [json $crate::schema::UpdateAchAuthFormDeferralDateRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -145,21 +153,28 @@ macro_rules! operation_table {
                 /// ErrorMessages.InvalidTransId if {transactionId} is non-null but
                 /// cannot be parsed as an integer. Delegates final formatting to
                 /// {M:RepayGatewayApi.Web.Controllers.AchReportingController.BuildResponse(System.String,System.String,RepayGatewayApi.Models.Response.CheckReportResponse,RepayGatewayApi.Web.Helpers.HeaderLetterCasing)}.
-                list {
+                list => List {
                     id: "AchReporting_GetTransactions",
                     method: GET,
                     path: "/transactions/ach",
                     path_params: {},
-                    query: {
+                    query: [ListParams {
+                        /// Optional transaction ID string. When provided (non-null),
+                        /// retrieves related transactions on the same bank account. Must be parsable as an
+                        /// integer.
                         transaction_id: ::std::string::String = "transaction_id",
+                        /// Optional filter string applied to narrow results (e.g., by
+                        /// transaction type or status).
                         filter_by: ::std::string::String = "filter_by",
+                        /// Optional maximum number of records to return.
                         take: i32 = "take",
+                        /// Optional number of records to skip for pagination.
                         skip: i32 = "skip",
-                    },
-                    body: none,
+                    }],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: true,
+                    response: json $crate::types::Json,
+                    export: [format "format"],
                     deprecated: false,
                 }
                 /// Get NACHA return rate threshold compliance report.
@@ -180,20 +195,25 @@ macro_rules! operation_table {
                 /// IResponseHelper.GenerateCsvReportFromProperties (property-based CSV with
                 /// Content-Disposition: attachment, filename "export.csv"). For JSON (default),
                 /// returns the full NachaThresholdReport object.
-                nacha_threshold_report {
+                nacha_threshold_report => NachaThresholdReport {
                     id: "AchReporting_GetNachaThresholdReport",
                     method: GET,
                     path: "/transactions/ach/nachathresholdreport",
                     path_params: {},
-                    query: {
+                    query: [NachaThresholdReportParams {
+                        /// Optional start date for the report period. Defaults to 60 days
+                        /// ago.
                         start_date: $crate::types::DateTime = "start_date",
+                        /// Optional end date for the report period. Defaults to now.
                         end_date: $crate::types::DateTime = "end_date",
+                        /// When true, excludes merchants with zero originations from
+                        /// the report. Defaults to false.
                         no_zero_trx: bool = "no_zero_trx",
-                    },
-                    body: none,
+                    }],
+                    body: [],
                     merchant: none,
-                    response: ::std::vec::Vec<$crate::schema::NachaThresholdReport>,
-                    export: true,
+                    response: json ::std::vec::Vec<$crate::schema::NachaThresholdReport>,
+                    export: [format "format"],
                     deprecated: false,
                 }
                 /// Query ACH transactions with full filter capabilities.
@@ -208,19 +228,21 @@ macro_rules! operation_table {
                 /// If ModelState is invalid, returns an empty result set. Validates the date range
                 /// against the data retention policy; returns HTTP 400 if violated. Delegates final formatting
                 /// to {M:RepayGatewayApi.Web.Controllers.AchReportingController.BuildResponse(System.String,System.String,RepayGatewayApi.Models.Response.CheckReportResponse,RepayGatewayApi.Web.Helpers.HeaderLetterCasing)}.
-                query {
+                query => Query {
                     id: "AchReporting_QueryTransactions",
                     method: POST,
                     path: "/transactions/ach/query",
                     path_params: {},
-                    query: {
+                    query: [QueryParams {
+                        /// Optional number of records to skip for pagination.
                         skip: i32 = "skip",
+                        /// Optional maximum number of records to return.
                         take: i32 = "take",
-                    },
-                    body: json($crate::schema::AchTransactionQuery),
+                    }],
+                    body: [json $crate::schema::AchTransactionQuery],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: true,
+                    response: json $crate::types::Json,
+                    export: [format "format"],
                     deprecated: false,
                 }
                 /// Query ACH batches.
@@ -228,19 +250,21 @@ macro_rules! operation_table {
                 /// Returns ACH batches for the current user filtered by the provided query parameters.
                 /// Defaults the date range if not provided. Enforces data retention policy. Supports CSV,
                 /// PDF, or JSON output formats with pagination.
-                query_batches {
+                query_batches => QueryBatches {
                     id: "AchBatch_QueryBatches",
                     method: POST,
                     path: "/batches/ach/query",
                     path_params: {},
-                    query: {
+                    query: [QueryBatchesParams {
+                        /// Number of records to skip (for paging).
                         skip: i32 = "skip",
+                        /// Number of records to take (for paging).
                         take: i32 = "take",
-                    },
-                    body: json($crate::schema::AchBatchQuery),
+                    }],
+                    body: [json $crate::schema::AchBatchQuery],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: true,
+                    response: json $crate::types::Json,
+                    export: [format "format"],
                     deprecated: false,
                 }
                 /// Export ACH transactions via query string parameters.
@@ -259,44 +283,71 @@ macro_rules! operation_table {
                 /// custom fields, and filter param). When the result set exceeds the
                 /// ReportResultLimit, the query layer loads records in chunks to avoid memory pressure.
                 /// Delegates final formatting to {M:RepayGatewayApi.Web.Controllers.AchReportingController.BuildResponse(System.String,System.String,RepayGatewayApi.Models.Response.CheckReportResponse,RepayGatewayApi.Web.Helpers.HeaderLetterCasing)}.
-                search {
+                search => Search {
                     id: "AchReporting_QueryExportTransactions",
                     method: GET,
                     path: "/transactions/ach/query/export",
                     path_params: {},
-                    query: {
+                    query: [SearchParams {
+                        /// Optional number of records to skip for pagination.
                         skip: i32 = "skip",
+                        /// Optional maximum number of records to return.
                         take: i32 = "take",
+                        /// The start date for the ACH transaction query. Required unless transaction, original transaction, or batch ID is provided.
                         start_date: $crate::types::DateTime = "query.start_date",
+                        /// The end date for the ACH transaction query. Required unless transaction, original transaction, or batch ID is provided.
                         end_date: $crate::types::DateTime = "query.end_date",
+                        /// The name on the check for the transaction.
                         name_on_check: ::std::string::String = "query.name_on_check",
+                        /// The check number for the transaction.
                         check_number: ::std::string::String = "query.check_number",
+                        /// The transit (routing) number for the transaction.
                         transit_number: ::std::string::String = "query.transit_number",
+                        /// The account number for the transaction.
                         account_number: ::std::string::String = "query.account_number",
+                        /// The original transaction identifier, if applicable.
                         original_transaction_id: i32 = "query.original_transaction_id",
+                        /// The batch identifier, if applicable.
                         batch_id: i32 = "query.batch_id",
+                        /// The transaction status.
                         trx_status: ::std::string::String = "query.trx_status",
+                        /// The processor identifier for the transaction.
                         processor_id: ::std::string::String = "query.processor_id",
+                        /// The list of custom fields for the transaction query.
                         custom_fields: ::std::vec::Vec<::std::string::String> = "query.custom_fields" multi,
+                        /// The merchant name.
                         merchant_name: ::std::string::String = "query.merchant_name",
+                        /// The merchant ID.
                         merchant_id: i32 = "query.merchant_id",
+                        /// The username associated with the transaction.
                         username: ::std::string::String = "query.username",
+                        /// The transaction ID.
                         transaction_id: i32 = "query.transaction_id",
+                        /// A value indicating whether to exclude voided transactions.
                         exclude_voids: bool = "query.exclude_voids",
+                        /// The transaction type.
                         trx_type: ::std::string::String = "query.trx_type",
+                        /// The result filter for the transaction query.
                         result: ::std::string::String = "query.result",
+                        /// The result to exclude from the transaction query.
                         exclude_result: ::std::string::String = "query.exclude_result",
+                        /// The total amount as a string.
                         total_amount: ::std::string::String = "query.total_amount",
+                        /// The customer ID.
                         customer_id: ::std::string::String = "query.customer_id",
+                        /// The register identifier.
                         register: ::std::string::String = "query.register",
+                        /// The invoice number.
                         invoice_number: ::std::string::String = "query.invoice_number",
+                        /// The approval code.
                         approval_code: ::std::string::String = "query.approval_code",
+                        /// An additional filter parameter.
                         filter_param: ::std::string::String = "query.filter_param",
-                    },
-                    body: none,
+                    }],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: true,
+                    response: json $crate::types::Json,
+                    export: [format "format"],
                     deprecated: false,
                 }
             }
@@ -305,261 +356,271 @@ macro_rules! operation_table {
                 ///
                 /// Creates a new ACH token for the current merchant without associating it to a specific customer.
                 /// Validates that external payment tokens are allowed for the merchant if provided.
-                create {
+                create => Create {
                     id: "AchTokens_CreateAchTokens",
                     method: POST,
                     path: "/achtokens",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CreateAchTokenRequest),
+                    query: [],
+                    body: [json $crate::schema::CreateAchTokenRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Delete an ACH token by token key.
                 ///
                 /// Deletes an ACH token by token key without requiring a customer key. The token cannot be deleted if it is attached to an active contract.
-                delete {
+                delete => Delete {
                     id: "AchTokens_DeleteAchToken",
                     method: DELETE,
                     path: "/achtokens/{ach_token_key}",
                     path_params: {
+                        /// The ACH token key to delete. Must be non-zero.
                         ach_token_key: $crate::types::AchTokenKey = "ach_token_key",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get an ACH token by token key.
                 ///
                 /// Retrieves a specific ACH token by token key without requiring a customer key, optionally including the decline count.
-                get {
+                get => Get {
                     id: "AchTokens_GetAchToken",
                     method: GET,
                     path: "/achtokens/{ach_token_key}",
                     path_params: {
+                        /// The ACH token key to retrieve. Must be non-zero.
                         ach_token_key: $crate::types::AchTokenKey = "ach_token_key",
                     },
-                    query: {
+                    query: [GetParams {
+                        /// If true, includes the decline count for the token from the decline tracking service.
                         include_decline_count: bool = "include_decline_count",
-                    },
-                    body: none,
+                    }],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Partially update an ACH token by token key.
                 ///
                 /// Partially updates an ACH token by token key without requiring a customer key, modifying only the fields provided in the request.
-                patch {
+                patch => Patch {
                     id: "AchTokens_UpdatePartialAchToken",
                     method: PATCH,
                     path: "/achtokens/{ach_token_key}",
                     path_params: {
+                        /// The ACH token key to update. Must be non-zero.
                         ach_token_key: $crate::types::AchTokenKey = "ach_token_key",
                     },
-                    query: {},
-                    body: json($crate::schema::AchTokenBaseRequest),
+                    query: [],
+                    body: [json $crate::schema::AchTokenBaseRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Query ACH tokens.
                 ///
                 /// Queries ACH tokens by token IDs, customer IDs, or account numbers. Filters results to merchants the current user can access.
                 /// Returns a paginated list of matching ACH tokens.
-                query {
+                query => Query {
                     id: "AchTokens_QueryAchTokens",
                     method: POST,
                     path: "/achtokens/query",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::AchTokenQueryRequest),
+                    query: [],
+                    body: [json $crate::schema::AchTokenQueryRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Update an ACH token by token key.
                 ///
                 /// Fully updates an existing ACH token by token key without requiring a customer key.
                 /// Validates that external payment tokens are allowed for the merchant if provided.
-                update {
+                update => Update {
                     id: "AchTokens_UpdateAchToken",
                     method: PUT,
                     path: "/achtokens/{ach_token_key}",
                     path_params: {
+                        /// The ACH token key to update. Must be non-zero.
                         ach_token_key: $crate::types::AchTokenKey = "ach_token_key",
                     },
-                    query: {},
-                    body: json($crate::schema::CreateAchTokenRequest),
+                    query: [],
+                    body: [json $crate::schema::CreateAchTokenRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
             }
             ach_transactions {
                 /// Performs a bulk void of ACH transactions. Restricted to reseller users.
-                bulk_void {
+                bulk_void => BulkVoid {
                     id: "AchTransactionProcessing_BulkVoid",
                     method: POST,
                     path: "/transactions/ach/bulkvoid",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::BulkVoidRequestModel),
+                    query: [],
+                    body: [json $crate::schema::BulkVoidRequestModel],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Processes an ACH credit (disbursement) transaction, sending funds to the customer's bank account.
                 /// Only supported for merchants on the Repay ACH backend; legacy processor merchants should use the SOAP API Transact endpoint.
                 /// Defaults the entry description to "DISBURSE" if not provided.
-                credit {
+                credit => Credit {
                     id: "AchTransactionProcessing_ProcessCredit",
                     method: POST,
                     path: "/transactions/ach/credit",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::AchCreditRequest),
+                    query: [],
+                    body: [json $crate::schema::AchCreditRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Processes an ACH credit prenote transaction, which is a zero-dollar test credit used to verify a bank account
                 /// before initiating live credits/disbursements. Only supported for merchants on the Repay ACH backend.
                 /// Defaults the entry description to "DISBURSE" if not provided.
-                credit_prenote {
+                credit_prenote => CreditPrenote {
                     id: "AchTransactionProcessing_ProcessCreditPrenote",
                     method: POST,
                     path: "/transactions/ach/creditprenote",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::AchCreditPrenoteRequest),
+                    query: [],
+                    body: [json $crate::schema::AchCreditPrenoteRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Processes an ACH debit prenote transaction, which is a zero-dollar test debit used to verify a bank account
                 /// before initiating live debits. Only supported for merchants on the Repay ACH backend.
                 /// Defaults the entry description to "PURCHASE" if not provided.
-                debit_prenote {
+                debit_prenote => DebitPrenote {
                     id: "AchTransactionProcessing_ProcessDebitPrenote",
                     method: POST,
                     path: "/transactions/ach/debitprenote",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::AchDebitPrenoteRequest),
+                    query: [],
+                    body: [json $crate::schema::AchDebitPrenoteRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Sends a transaction receipt email for a specific ACH transaction to the specified email address.
                 /// Validates that the user has access to the transaction's merchant before sending.
-                email_receipt {
+                email_receipt => EmailReceipt {
                     id: "AchTransactionProcessing_EmailTransactionReceipt",
                     method: POST,
                     path: "/transactions/ach/{transaction_id}/emailreceipt",
                     path_params: {
+                        /// The ID of the ACH transaction.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: json($crate::schema::EmailReceiptRequest),
+                    query: [],
+                    body: [json $crate::schema::EmailReceiptRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Processes an offset transaction against a previously settled ACH credit, debiting back the credited amount
                 /// (fully or partially). The original transaction must be settled and must be a credit transaction.
                 /// The offset amount cannot exceed the original credit amount minus any previous offsets.
                 /// If the amount is zero, the remaining unoffsetted balance is debited.
-                offset {
+                offset => Offset {
                     id: "AchTransactionProcessing_ProcessOffset",
                     method: POST,
                     path: "/transactions/ach/{transaction_id}/offset",
                     path_params: {
+                        /// The ID of the original settled credit transaction to offset.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: json($crate::schema::AchOffsetRequest),
+                    query: [],
+                    body: [json $crate::schema::AchOffsetRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Processes a rebill (repeat sale) for a previous ACH transaction, creating a new debit based on the original transaction details.
                 /// Validates the transaction against the data retention policy before processing.
                 /// Routes to either the Repay ACH backend or the legacy check processor based on merchant configuration.
-                rebill {
+                rebill => Rebill {
                     id: "AchTransactionProcessing_ProcessRebill",
                     method: POST,
                     path: "/transactions/ach/{transaction_id}/rebill",
                     path_params: {
+                        /// The ID of the original transaction to rebill.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: json($crate::schema::AchRebillRequest),
+                    query: [],
+                    body: [json $crate::schema::AchRebillRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Processes a refund (credit) for a previous ACH transaction, returning funds to the customer's bank account.
                 /// Routes to either the Repay ACH backend or the legacy check processor based on merchant configuration.
-                refund {
+                refund => Refund {
                     id: "AchTransactionProcessing_ProcessRefund",
                     method: POST,
                     path: "/transactions/ach/{transaction_id}/refund",
                     path_params: {
+                        /// The ID of the original transaction to refund.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: json($crate::schema::AchRefundRequest),
+                    query: [],
+                    body: [json $crate::schema::AchRefundRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Processes an ACH sale (debit) transaction, debiting funds from the customer's bank account.
                 /// Routes to either the Repay ACH backend or the legacy check processor based on merchant configuration.
                 /// Defaults the entry description to "PURCHASE" if not provided.
-                sale {
+                sale => Sale {
                     id: "AchTransactionProcessing_ProcessSale",
                     method: POST,
                     path: "/transactions/ach/sale",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::AchSaleRequest),
+                    query: [],
+                    body: [json $crate::schema::AchSaleRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Voids a previously created ACH transaction, cancelling it before settlement.
                 /// Routes to either the Repay ACH backend or the legacy check processor based on merchant configuration.
-                void {
+                void => Void {
                     id: "AchTransactionProcessing_ProcessVoid",
                     method: POST,
                     path: "/transactions/ach/{transaction_id}/void",
                     path_params: {
+                        /// The ID of the transaction to void. Must be a valid numeric value.
                         transaction_id: ::std::string::String = "transaction_id",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -573,32 +634,32 @@ macro_rules! operation_table {
                 /// matching merchant, not fully reversed, remaining balance sufficient) before processing.
                 /// Returns a `BulkTransactionProcessingResult` on full success, or a CSV file with per-row results
                 /// (including error messages) on partial or full failure.
-                bulk_disbursement_funding {
+                bulk_disbursement_funding => BulkDisbursementFunding {
                     id: "Adjustments_ProcessBulkDisbursementFundingAdjustment",
                     method: POST,
                     path: "/adjustments/disbursementfunding/bulk",
                     path_params: {},
-                    query: {},
-                    body: multipart,
+                    query: [],
+                    body: [multipart],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get the CSV template for bulk disbursement funding adjustments.
                 ///
                 /// Returns a downloadable CSV template file for the bulk disbursement funding adjustment endpoint,
                 /// containing a sample row with the expected columns: MerchantId, TransactionId, OriginalAmount, AdjustmentAmount.
-                bulk_template {
+                bulk_template => BulkTemplate {
                     id: "Adjustments_GetBulkDisbursementFundingAdjustmentTemplate",
                     method: GET,
                     path: "/adjustments/disbursementfunding/bulk/template",
                     path_params: {},
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Process a single disbursement funding adjustment.
@@ -607,36 +668,38 @@ macro_rules! operation_table {
                 /// positive, cannot exceed the original amount, and the original transaction must be a DisbursementFunding type.
                 /// The engine validates the transaction exists, matches the merchant, has not been fully reversed, and the
                 /// adjustment amount does not exceed the remaining balance.
-                disbursement_funding {
+                disbursement_funding => DisbursementFunding {
                     id: "Adjustments_ProcessDisbursementFundingAdjustment",
                     method: POST,
                     path: "/adjustments/disbursementfunding/{transaction_id}",
                     path_params: {
+                        /// The ID of the original disbursement funding transaction to adjust.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: json($crate::schema::TransactionAdjustmentRequest),
+                    query: [],
+                    body: [json $crate::schema::TransactionAdjustmentRequest],
                     merchant: none,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Reverse a disbursement funding transaction.
                 ///
                 /// Processes a full reversal of a disbursement funding transaction. Validates that the original transaction
                 /// is a DisbursementFunding type and has not already been fully reversed.
-                disbursement_funding_reversal {
+                disbursement_funding_reversal => DisbursementFundingReversal {
                     id: "Adjustments_ProcessDisbursementFundingReversal",
                     method: POST,
                     path: "/adjustments/disbursementfunding/{transaction_id}/reversal",
                     path_params: {
+                        /// The ID of the disbursement funding transaction to reverse.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: optional,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -658,16 +721,16 @@ macro_rules! operation_table {
                 /// containing the batch ID and a correlation ID (from the CloudFront request header). On validation
                 /// failure, the FluentValidation.Results.ValidationResult errors are added to the
                 /// ModelState and a non-success response is returned.
-                close_card {
+                close_card => CloseCard {
                     id: "CardSettlementBatchClosing_CloseCardSettlementBatch",
                     method: POST,
                     path: "/openbatches/card",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CloseCardSettlementBatchRequest),
+                    query: [],
+                    body: [json $crate::schema::CloseCardSettlementBatchRequest],
                     merchant: required,
-                    response: $crate::schema::CloseCardSettlementBatchResponse,
-                    export: false,
+                    response: json $crate::schema::CloseCardSettlementBatchResponse,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -678,34 +741,35 @@ macro_rules! operation_table {
                 /// name on card, address, and nickname. Performs BIN data lookup to determine card brand and type,
                 /// checks network tokenization eligibility, and creates a network token if eligible.
                 /// Emits a StoreCardEvent gateway event. The token is associated with the authenticated merchant.
-                create {
+                create => Create {
                     id: "CardTokens_CreateCardTokenAsync",
                     method: POST,
                     path: "/cardtokens",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CreateCardTokenRequest),
+                    query: [],
+                    body: [json $crate::schema::CreateCardTokenRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Delete a card token by token key.
                 ///
                 /// Deletes a card token without requiring a customer key. Soft-deletes the card token record.
                 /// The card token must belong to the authenticated merchant.
-                delete {
+                delete => Delete {
                     id: "CardTokens_DeleteCardToken",
                     method: DELETE,
                     path: "/cardtokens/{card_token_key}",
                     path_params: {
+                        /// The card token key to delete. Must be non-zero.
                         card_token_key: $crate::types::CardTokenKey = "card_token_key",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get a card token by token key.
@@ -713,20 +777,22 @@ macro_rules! operation_table {
                 /// Retrieves a card token by card token key without requiring a customer key. Verifies the caller
                 /// has access to the merchant that owns the card token. The card token must belong to the
                 /// authenticated merchant directly (not via customer association).
-                get {
+                get => Get {
                     id: "CardTokens_GetCardTokenAsync",
                     method: GET,
                     path: "/cardtokens/{card_token_key}",
                     path_params: {
+                        /// The card token key to retrieve. Must be non-zero.
                         card_token_key: $crate::types::CardTokenKey = "card_token_key",
                     },
-                    query: {
+                    query: [GetParams {
+                        /// When true, includes the decline count for the card token. Defaults to false.
                         include_decline_count: bool = "include_decline_count",
-                    },
-                    body: none,
+                    }],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Partially update a card token by token key.
@@ -734,18 +800,19 @@ macro_rules! operation_table {
                 /// Partially updates a card token without requiring a customer key. Only the supplied (non-null) fields
                 /// overwrite the corresponding fields; unset fields retain their current values.
                 /// The card token must belong to the authenticated merchant.
-                patch {
+                patch => Patch {
                     id: "CardTokens_UpdatePartialCardTokenAsync",
                     method: PATCH,
                     path: "/cardtokens/{card_token_key}",
                     path_params: {
+                        /// The card token key to patch. Must be non-zero.
                         card_token_key: $crate::types::CardTokenKey = "card_token_key",
                     },
-                    query: {},
-                    body: json($crate::schema::CardTokenBaseRequest),
+                    query: [],
+                    body: [json $crate::schema::CardTokenBaseRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Query card tokens.
@@ -754,16 +821,16 @@ macro_rules! operation_table {
                 /// multiple merchants the caller has access to), and other criteria defined in CardTokenQueryRequest.
                 /// Merchants the caller cannot access are excluded from the results. Returns a CardTokenQueryResponse
                 /// containing matching card tokens.
-                query {
+                query => Query {
                     id: "CardTokens_QueryCardTokens",
                     method: POST,
                     path: "/cardtokens/query",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CardTokenQueryRequest),
+                    query: [],
+                    body: [json $crate::schema::CardTokenQueryRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Update a card token by token key.
@@ -771,18 +838,19 @@ macro_rules! operation_table {
                 /// Fully updates a card token without requiring a customer key. Replaces all mutable fields with the
                 /// provided values. Performs BIN data lookup, PAN encryption, and network tokenization eligibility check.
                 /// Emits an UpdateCardEvent gateway event. The card token must belong to the authenticated merchant.
-                update {
+                update => Update {
                     id: "CardTokens_UpdateCardTokenAsync",
                     method: PUT,
                     path: "/cardtokens/{card_token_key}",
                     path_params: {
+                        /// The card token key to update. Must be non-zero.
                         card_token_key: $crate::types::CardTokenKey = "card_token_key",
                     },
-                    query: {},
-                    body: json($crate::schema::CreateCardTokenRequest),
+                    query: [],
+                    body: [json $crate::schema::CreateCardTokenRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -792,16 +860,16 @@ macro_rules! operation_table {
                 /// Processes a card authorization that reserves funds without capturing them. Supports 3-D Secure
                 /// authentication data. Reseller users must provide the MerchantId header. Supports auto-reversal
                 /// retry for debit cards. Returns HTTP 200 if approved or HTTP 201 otherwise.
-                auth {
+                auth => Auth {
                     id: "CardTransactions_ProcessAuthAsync",
                     method: POST,
                     path: "/transactions/card/auth",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CardAuthRequest),
+                    query: [],
+                    body: [json $crate::schema::CardAuthRequest],
                     merchant: none,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Bulk reverse card transactions from a CSV file upload.
@@ -810,16 +878,16 @@ macro_rules! operation_table {
                 /// containing transaction IDs and processes each reversal individually. Returns a result
                 /// containing successful and failed transactions. Returns HTTP 415 if the content is not
                 /// multipart MIME.
-                bulk_reversal {
+                bulk_reversal => BulkReversal {
                     id: "CardTransactions_BulkProcessReversal",
                     method: POST,
                     path: "/transactions/card/reversal/bulk",
                     path_params: {},
-                    query: {},
-                    body: multipart,
+                    query: [],
+                    body: [multipart],
                     merchant: optional,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Bulk void multiple card transactions.
@@ -827,16 +895,16 @@ macro_rules! operation_table {
                 /// Restricted to reseller users. Requires the MerchantId header. Processes each transaction ID
                 /// individually and returns a result indicating full success or partial failure with details of
                 /// successful and failed transactions.
-                bulk_void {
+                bulk_void => BulkVoid {
                     id: "CardTransactions_BulkVoid",
                     method: POST,
                     path: "/transactions/card/bulkvoid",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::BulkVoidRequestModel),
+                    query: [],
+                    body: [json $crate::schema::BulkVoidRequestModel],
                     merchant: optional,
-                    response: ::std::vec::Vec<$crate::schema::TransactionDetailCardResponse>,
-                    export: false,
+                    response: json ::std::vec::Vec<$crate::schema::TransactionDetailCardResponse>,
+                    export: [],
                     deprecated: false,
                 }
                 /// Capture a previously authorized card transaction.
@@ -844,68 +912,72 @@ macro_rules! operation_table {
                 /// Completes a previously authorized transaction by capturing the funds. Supports optional
                 /// amount override. Reseller users must provide the MerchantId header. Returns HTTP 200 if
                 /// approved or HTTP 201 otherwise.
-                capture {
+                capture => Capture {
                     id: "CardTransactions_ProcessCapture",
                     method: POST,
                     path: "/transactions/card/{transaction_id}/capture",
                     path_params: {
+                        /// The TRX\_HD\_Key of the authorized transaction to
+                        /// capture.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: json($crate::schema::CardCaptureRequest),
+                    query: [],
+                    body: [json $crate::schema::CardCaptureRequest],
                     merchant: optional,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Process a card disbursement.
                 ///
                 /// Pushes funds to a cardholder's card. Requires the MerchantId header. Returns HTTP 200 if
                 /// approved or HTTP 201 otherwise.
-                disbursement {
+                disbursement => Disbursement {
                     id: "CardTransactions_ProcessDisbursementAsync",
                     method: POST,
                     path: "/transactions/card/disbursement",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CardDisbursementRequest),
+                    query: [],
+                    body: [json $crate::schema::CardDisbursementRequest],
                     merchant: optional,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Send an email receipt for a card transaction.
                 ///
                 /// Sends a formatted email receipt for the specified transaction to the provided email address.
                 /// Uses the user's timezone offset for date formatting in the receipt.
-                email_receipt {
+                email_receipt => EmailReceipt {
                     id: "CardTransactions_EmailTransactionReceipt",
                     method: POST,
                     path: "/transactions/card/{transaction_id}/emailreceipt",
                     path_params: {
+                        /// The TRX\_HD\_Key of the transaction to email a receipt
+                        /// for.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: json($crate::schema::EmailReceiptRequest),
+                    query: [],
+                    body: [json $crate::schema::EmailReceiptRequest],
                     merchant: none,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Force capture a card transaction with an approval code.
                 ///
                 /// Processes an offline authorization using a pre-obtained approval code. Reseller users must
                 /// provide the MerchantId header. Returns HTTP 200 if approved or HTTP 201 otherwise.
-                force {
+                force => Force {
                     id: "CardTransactions_ProcessForce",
                     method: POST,
                     path: "/transactions/card/force",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CardForceRequest),
+                    query: [],
+                    body: [json $crate::schema::CardForceRequest],
                     merchant: optional,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Force rebill a card transaction with an approval code.
@@ -913,16 +985,16 @@ macro_rules! operation_table {
                 /// Processes a repeat sale using a pre-obtained approval code, bypassing the processor.
                 /// Reseller users must provide the MerchantId header. Returns HTTP 200 if approved or HTTP 201
                 /// otherwise.
-                force_rebill {
+                force_rebill => ForceRebill {
                     id: "CardTransactions_ProcessForceRebillAsync",
                     method: POST,
                     path: "/transactions/card/force-rebill",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CardForceRebillRequest),
+                    query: [],
+                    body: [json $crate::schema::CardForceRebillRequest],
                     merchant: optional,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get a card transaction by ID.
@@ -930,18 +1002,19 @@ macro_rules! operation_table {
                 /// Retrieves a single card transaction. Returns HTTP 404 if not found. Returns HTTP 403 if the
                 /// transaction does not belong to the authenticated user's merchant. Validates the transaction
                 /// date against the data retention policy.
-                get {
+                get => Get {
                     id: "CardTransactions_GetTransactionById",
                     method: GET,
                     path: "/transactions/card/{transaction_id}",
                     path_params: {
+                        /// The TRX\_HD\_Key of the card transaction.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Check if a transaction's processor profile differs from the current default.
@@ -950,18 +1023,19 @@ macro_rules! operation_table {
                 /// original transaction. Returns ShowWarning = true with the original profile description if
                 /// profiles differ. Returns HTTP 404 if the transaction is not found. Gracefully handles errors
                 /// by returning ShowWarning = false.
-                itr_profile_warning {
+                itr_profile_warning => ItrProfileWarning {
                     id: "CardTransactions_GetItrProfileWarningContextInfo",
                     method: GET,
                     path: "/transactions/card/{transaction_id}/itr-profile-warningcontext-info",
                     path_params: {
+                        /// The TRX\_HD\_Key of the transaction to check.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::schema::ItrProfileWarningResponse,
-                    export: false,
+                    response: json $crate::schema::ItrProfileWarningResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Query card transactions using a lightweight stored procedure.
@@ -969,19 +1043,22 @@ macro_rules! operation_table {
                 /// Returns a limited set of card transaction data optimized for performance. Supports filtering
                 /// by date range, transaction ID, exclude-captured, exclude-voided, and customer ID. Results
                 /// are capped at 1000 records. Enforces data retention policy.
-                limited_query {
+                limited_query => LimitedQuery {
                     id: "CardTransactions_LimitedQueryTransaction",
                     method: POST,
                     path: "/transactions/card/limited/query",
                     path_params: {},
-                    query: {
+                    query: [LimitedQueryParams {
+                        /// Optional number of records to skip for pagination.
                         skip: i32 = "skip",
+                        /// Optional max records to return (capped at 1000 by the query
+                        /// layer).
                         take: i32 = "take",
-                    },
-                    body: json($crate::schema::LimitedCardTransactionQuery),
+                    }],
+                    body: [json $crate::schema::LimitedCardTransactionQuery],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get card transactions.
@@ -989,22 +1066,27 @@ macro_rules! operation_table {
                 /// Retrieves card transactions by transaction ID (finds all transactions on the same card),
                 /// by batch ID, or returns recent transactions for the user. Supports JSON, CSV, Excel, and
                 /// PDF output formats.
-                list {
+                list => List {
                     id: "CardTransactions_GetTransactions",
                     method: GET,
                     path: "/transactions/card",
                     path_params: {},
-                    query: {
+                    query: [ListParams {
+                        /// The transaction identifier to filter the card transactions.
                         transaction_id: ::std::string::String = "request.transaction_id",
+                        /// An optional filter parameter for the query.
                         filter_param: ::std::string::String = "request.filter_param",
+                        /// The number of results to take (page size).
                         take: i32 = "request.take",
+                        /// The number of results to skip (for paging).
                         skip: i32 = "request.skip",
+                        /// The batch identifier to filter the card transactions.
                         batch_id: ::std::string::String = "request.batch_id",
-                    },
-                    body: none,
+                    }],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: true,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Query card transactions with full filter capabilities.
@@ -1013,19 +1095,21 @@ macro_rules! operation_table {
                 /// cardholder, invoice, amount, status, username, register, approval code, and custom fields.
                 /// Enforces data retention policy. Supports JSON, CSV, Excel, and PDF output formats. CSV and
                 /// Excel use snake\_case column headers.
-                query {
+                query => Query {
                     id: "CardTransactions_QueryTransactions",
                     method: POST,
                     path: "/transactions/card/query",
                     path_params: {},
-                    query: {
+                    query: [QueryParams {
+                        /// Optional number of records to skip for pagination.
                         skip: i32 = "skip",
+                        /// Optional max records to return.
                         take: i32 = "take",
-                    },
-                    body: json($crate::schema::CardTransactionQuery),
+                    }],
+                    body: [json $crate::schema::CardTransactionQuery],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: true,
+                    response: json $crate::types::Json,
+                    export: [format "format"],
                     deprecated: false,
                 }
                 /// Query card transactions by date with report type routing.
@@ -1033,21 +1117,25 @@ macro_rules! operation_table {
                 /// Queries card transactions filtered by date range with the report type controlling column
                 /// selection and output shape. Enforces data retention policy. Supports JSON, CSV, Excel, and
                 /// PDF output formats.
-                query_by_date {
+                query_by_date => QueryByDate {
                     id: "CardTransactions_QuerySalesByDate",
                     method: POST,
                     path: "/transactions/card/query/{report_type}",
                     path_params: {
+                        /// The ReportColumnType (e.g., Card,
+                        /// CardRebill) controlling which columns appear in CSV/PDF output.
                         report_type: $crate::schema::ReportType = "report_type",
                     },
-                    query: {
+                    query: [QueryByDateParams {
+                        /// Optional records to skip.
                         skip: i32 = "skip",
+                        /// Optional max records to return.
                         take: i32 = "take",
-                    },
-                    body: json($crate::schema::CardTransactionsByDateQuery),
+                    }],
+                    body: [json $crate::schema::CardTransactionsByDateQuery],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: true,
+                    response: json $crate::types::Json,
+                    export: [format "format"],
                     deprecated: false,
                 }
                 /// Rebill a previous card transaction.
@@ -1055,54 +1143,58 @@ macro_rules! operation_table {
                 /// Processes a repeat sale on a previous card transaction using the original card details.
                 /// Reseller users must provide the MerchantId header. Returns HTTP 200 if approved or HTTP 201
                 /// otherwise.
-                rebill {
+                rebill => Rebill {
                     id: "CardTransactions_ProcessRebillAsync",
                     method: POST,
                     path: "/transactions/card/{transaction_id}/rebill",
                     path_params: {
+                        /// The TRX\_HD\_Key of the original transaction.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: json($crate::schema::CardRebillRequest),
+                    query: [],
+                    body: [json $crate::schema::CardRebillRequest],
                     merchant: optional,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Refund a card transaction.
                 ///
                 /// Processes a refund (credit) on a previously settled card transaction. Returns HTTP 200 if
                 /// approved or HTTP 201 otherwise.
-                refund {
+                refund => Refund {
                     id: "CardTransactions_ProcessRefundAsync",
                     method: POST,
                     path: "/transactions/card/{transaction_id}/refund",
                     path_params: {
+                        /// The TRX\_HD\_Key of the original transaction to
+                        /// refund.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: json($crate::schema::CardRefundRequest),
+                    query: [],
+                    body: [json $crate::schema::CardRefundRequest],
                     merchant: none,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Reverse a card transaction.
                 ///
                 /// Processes a full reversal on a card transaction, sending the reversal back to the processor.
                 /// Supports optional amount override. Returns HTTP 200 if approved or HTTP 201 otherwise.
-                reversal {
+                reversal => Reversal {
                     id: "CardTransactions_ProcessReversal",
                     method: POST,
                     path: "/transactions/card/{transaction_id}/reversal",
                     path_params: {
+                        /// The TRX\_HD\_Key of the transaction to reverse.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: json($crate::schema::CardReversalRequest),
+                    query: [],
+                    body: [json $crate::schema::CardReversalRequest],
                     merchant: none,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Process a card sale transaction.
@@ -1110,16 +1202,16 @@ macro_rules! operation_table {
                 /// Processes a combined authorization and capture in a single step. Supports 3-D Secure
                 /// authentication data. Reseller users must provide the MerchantId header. Supports auto-reversal
                 /// retry for debit cards. Returns HTTP 200 if approved or HTTP 201 otherwise.
-                sale {
+                sale => Sale {
                     id: "CardTransactions_ProcessSaleAsync",
                     method: POST,
                     path: "/transactions/card/sale",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CardSaleRequest),
+                    query: [],
+                    body: [json $crate::schema::CardSaleRequest],
                     merchant: none,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Export card transactions via query string parameters.
@@ -1127,64 +1219,95 @@ macro_rules! operation_table {
                 /// Functionally identical to the POST query endpoint but accepts filter parameters from the
                 /// query string for GET-based export workflows. Enforces data retention policy. Supports JSON,
                 /// CSV, Excel, and PDF output formats.
-                search {
+                search => Search {
                     id: "CardTransactions_QueryExportTransactions",
                     method: GET,
                     path: "/transactions/card/query/export",
                     path_params: {},
-                    query: {
+                    query: [SearchParams {
+                        /// Optional number of records to skip.
                         skip: i32 = "skip",
+                        /// Optional max records to return.
                         take: i32 = "take",
+                        /// The payment type for the transaction query.
                         payment_type: ::std::string::String = "query.payment_type",
+                        /// The cardholder name for the transaction query.
                         card_holder: ::std::string::String = "query.card_holder",
+                        /// The card number for the transaction query.
                         card_number: ::std::string::String = "query.card_number",
+                        /// The purchase order number for the transaction query.
                         po_number: ::std::string::String = "query.po_number",
+                        /// The batch number for the transaction query.
                         batch_number: ::std::string::String = "query.batch_number",
+                        /// A value indicating whether to exclude captured transactions from the query.
                         exclude_captured: bool = "query.exclude_captured",
+                        /// A value indicating whether to show only auto-reversal transactions.
                         show_only_auto_reversals: bool = "query.show_only_auto_reversals",
+                        /// A value indicating whether to mark auto-reversal transactions in the results.
                         mark_auto_reversals: bool = "query.mark_auto_reversals",
+                        /// The transaction status for the query.
                         trx_status: ::std::string::String = "query.trx_status",
+                        /// The list of custom fields for the transaction query.
                         custom_fields: ::std::vec::Vec<::std::string::String> = "query.custom_fields" multi,
+                        /// The card token for the transaction query.
                         card_token: i32 = "query.card_token",
+                        /// The start settlement date for the transaction query.
                         start_settle_date: $crate::types::DateTime = "query.start_settle_date",
+                        /// The end settlement date for the transaction query.
                         end_settle_date: $crate::types::DateTime = "query.end_settle_date",
+                        /// The start date for the transaction query.
                         start_date: $crate::types::DateTime = "query.start_date",
+                        /// The end date for the transaction query.
                         end_date: $crate::types::DateTime = "query.end_date",
+                        /// The merchant name.
                         merchant_name: ::std::string::String = "query.merchant_name",
+                        /// The merchant ID.
                         merchant_id: i32 = "query.merchant_id",
+                        /// The username associated with the transaction.
                         username: ::std::string::String = "query.username",
+                        /// The transaction ID.
                         transaction_id: i32 = "query.transaction_id",
+                        /// A value indicating whether to exclude voided transactions.
                         exclude_voids: bool = "query.exclude_voids",
+                        /// The transaction type.
                         trx_type: ::std::string::String = "query.trx_type",
+                        /// The result filter for the transaction query.
                         result: ::std::string::String = "query.result",
+                        /// The result to exclude from the transaction query.
                         exclude_result: ::std::string::String = "query.exclude_result",
+                        /// The total amount as a string.
                         total_amount: ::std::string::String = "query.total_amount",
+                        /// The customer ID.
                         customer_id: ::std::string::String = "query.customer_id",
+                        /// The register identifier.
                         register: ::std::string::String = "query.register",
+                        /// The invoice number.
                         invoice_number: ::std::string::String = "query.invoice_number",
+                        /// The approval code.
                         approval_code: ::std::string::String = "query.approval_code",
+                        /// An additional filter parameter.
                         filter_param: ::std::string::String = "query.filter_param",
-                    },
-                    body: none,
+                    }],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: true,
+                    response: json $crate::types::Json,
+                    export: [format "format"],
                     deprecated: false,
                 }
                 /// Get a summary of card transactions.
                 ///
                 /// Returns card transactions aggregated by card type and transaction type. Enforces data
                 /// retention policy. Returns HTTP 400 if query parameters are invalid.
-                summary {
+                summary => Summary {
                     id: "CardTransactions_QueryCardSummary",
                     method: POST,
                     path: "/transactions/card/query/summary",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CardTransactionQuery),
+                    query: [],
+                    body: [json $crate::schema::CardTransactionQuery],
                     merchant: none,
-                    response: $crate::schema::CardSummaryResponse,
-                    export: false,
+                    response: json $crate::schema::CardSummaryResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Refund a card transaction without a previous transaction.
@@ -1192,34 +1315,35 @@ macro_rules! operation_table {
                 /// Processes an unlinked refund (credit) on a card. No previous transaction is required.
                 /// Access is restricted by the UnlinkedCardRefundEnabledForMerchantIds feature flag.
                 /// Returns HTTP 200 if approved or HTTP 201 otherwise.
-                unlinked_refund {
+                unlinked_refund => UnlinkedRefund {
                     id: "CardTransactions_ProcessUnlinkedRefundAsync",
                     method: POST,
                     path: "/transactions/card/refund",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::UnlinkedCardRefundRequest),
+                    query: [],
+                    body: [json $crate::schema::UnlinkedCardRefundRequest],
                     merchant: none,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Void a card transaction.
                 ///
                 /// Voids a previously processed card transaction. May be automatically converted to a reversal
                 /// if conditions are met. Returns HTTP 200 if approved or HTTP 201 otherwise.
-                void {
+                void => Void {
                     id: "CardTransactions_ProcessVoid",
                     method: POST,
                     path: "/transactions/card/{transaction_id}/void",
                     path_params: {
+                        /// The TRX\_HD\_Key of the transaction to void.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -1229,36 +1353,38 @@ macro_rules! operation_table {
                 /// Sends an email receipt for a cash transaction. Delegates to
                 /// ICashTransactionEngine.EmailTransactionReceipt, which generates and sends a receipt email
                 /// to the specified address for the given transaction.
-                email_receipt {
+                email_receipt => EmailReceipt {
                     id: "CashTransactions_EmailTransactionReceipt",
                     method: POST,
                     path: "/transactions/cash/{transaction_id}/emailreceipt",
                     path_params: {
+                        /// The ID of the cash transaction to generate a receipt for.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: json($crate::schema::EmailReceiptRequest),
+                    query: [],
+                    body: [json $crate::schema::EmailReceiptRequest],
                     merchant: none,
-                    response: $crate::schema::TransactionDetailCardResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCardResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get a cash transaction by ID.
                 ///
                 /// Retrieves a single cash transaction by ID. Validates that the transaction belongs to the authenticated
                 /// user's merchant before returning. Marked as a reporting action.
-                get {
+                get => Get {
                     id: "CashTransactions_GetTransactionById",
                     method: GET,
                     path: "/transactions/cash/{transaction_id}",
                     path_params: {
+                        /// The ID of the cash transaction to retrieve.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::schema::TransactionDetailCashResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCashResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Query cash transactions.
@@ -1275,19 +1401,21 @@ macro_rules! operation_table {
                 /// with the user's timezone offset for date formatting.
                 /// - JSON (default) — returns a CashTransactionsReportResponse with paginated
                 /// transactions (including HATEOAS links) and a total record count.
-                query {
+                query => Query {
                     id: "CashTransactions_QueryTransactions",
                     method: POST,
                     path: "/transactions/cash/query",
                     path_params: {},
-                    query: {
+                    query: [QueryParams {
+                        /// Number of records to skip for pagination. Optional.
                         skip: i32 = "skip",
+                        /// Number of records to return. Defaults to IEnvironmentValues.ReportResultLimit if not specified; capped at the report result limit.
                         take: i32 = "take",
-                    },
-                    body: json($crate::schema::CashTransactionQuery),
+                    }],
+                    body: [json $crate::schema::CashTransactionQuery],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: true,
+                    response: json $crate::types::Json,
+                    export: [format "format"],
                     deprecated: false,
                 }
                 /// Refund a cash transaction.
@@ -1298,18 +1426,19 @@ macro_rules! operation_table {
                 /// specified) does not exceed the original amount or the remaining refundable balance (original minus
                 /// cumulative prior refunds). Creates a new credit transaction record linked to the original. Emits a
                 /// CashReversalEvent gateway event. Requires the merchant ID header for reseller users.
-                refund {
+                refund => Refund {
                     id: "CashTransactions_RefundTransaction",
                     method: POST,
                     path: "/transactions/cash/{transaction_id}/_refund",
                     path_params: {
+                        /// The ID of the cash transaction to refund.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: json($crate::schema::CashAmountRequest),
+                    query: [],
+                    body: [json $crate::schema::CashAmountRequest],
                     merchant: optional,
-                    response: $crate::schema::TransactionDetailCashResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCashResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Process a cash sale transaction.
@@ -1320,16 +1449,16 @@ macro_rules! operation_table {
                 /// merchant ID, reseller key, user key, and username from the request context. Also supports eCash
                 /// transactions when the sale includes eCash-specific custom fields. Emits a CashSaleEvent
                 /// gateway event. Requires the merchant ID header for reseller users.
-                sale {
+                sale => Sale {
                     id: "CashTransactions_SaleTransaction",
                     method: POST,
                     path: "/transactions/cash/sale",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CashSaleRequest),
+                    query: [],
+                    body: [json $crate::schema::CashSaleRequest],
                     merchant: optional,
-                    response: $crate::schema::TransactionDetailCashResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCashResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Void a cash transaction.
@@ -1340,18 +1469,19 @@ macro_rules! operation_table {
                 /// transaction record (cloned from the original with Trans\_Type\_ID = Void), flags the original
                 /// as voided and reversed, and saves both. Emits a CashVoidEvent gateway event. Requires the
                 /// merchant ID header for reseller users.
-                void {
+                void => Void {
                     id: "CashTransactions_VoidTransaction",
                     method: POST,
                     path: "/transactions/cash/{transaction_id}/void",
                     path_params: {
+                        /// The ID of the cash transaction to void.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: optional,
-                    response: $crate::schema::TransactionDetailCashResponse,
-                    export: false,
+                    response: json $crate::schema::TransactionDetailCashResponse,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -1378,18 +1508,19 @@ macro_rules! operation_table {
                 /// Check\_Info\_Key, and the creating user key, then persists via
                 /// IContractService.AddContract. Returns the created ContractResponse (containing
                 /// Info and CustomFields).
-                create {
+                create => Create {
                     id: "Contracts_AddContract",
                     method: POST,
                     path: "/customers/{customer_key}/contracts",
                     path_params: {
+                        /// The Customer\_Key to create the contract for.
                         customer_key: $crate::types::CustomerKey = "customer_key",
                     },
-                    query: {},
-                    body: json($crate::schema::ContractRequest),
+                    query: [],
+                    body: [json $crate::schema::ContractRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get a contract by ID for a customer.
@@ -1401,19 +1532,21 @@ macro_rules! operation_table {
                 /// IContractService.GetCustomerContractById. Returns a ContractResponse containing
                 /// Info (ContractInfoResponse with all contract/billing/payment details) and
                 /// CustomFields (list of ContractCustomFieldValue entries).
-                get {
+                get => Get {
                     id: "Contracts_GetCustomerContractById",
                     method: GET,
                     path: "/customers/{customer_key}/contracts/{contract_key}",
                     path_params: {
+                        /// The Customer\_Key that owns the contract.
                         customer_key: $crate::types::CustomerKey = "customer_key",
+                        /// The Contract\_Key of the contract to retrieve.
                         contract_key: $crate::types::ContractKey = "contract_key",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get all contracts for a customer.
@@ -1427,18 +1560,19 @@ macro_rules! operation_table {
                 /// (Bill\_Amt, Tax\_Amt, Total\_Amt, Billing\_Period\_ID,
                 /// Next\_Bill\_DT), payment method info (Card\_Info\_Key or Check\_Info\_Key,
                 /// Last4\_Num), and status/user info.
-                list {
+                list => List {
                     id: "Contracts_GetCustomerContracts",
                     method: GET,
                     path: "/customers/{customer_key}/contracts",
                     path_params: {
+                        /// The Customer\_Key to retrieve contracts for.
                         customer_key: $crate::types::CustomerKey = "customer_key",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Update a recurring billing contract for a customer.
@@ -1458,19 +1592,21 @@ macro_rules! operation_table {
                 /// Contract\_T entity by {contractKey}, updates the fields from the
                 /// request, sets the Last\_Update\_UserKey to the authenticated user's key, and persists
                 /// via IContractService.UpdateContract. Returns the updated ContractResponse.
-                update {
+                update => Update {
                     id: "Contracts_UpdateContract",
                     method: PUT,
                     path: "/customers/{customer_key}/contracts/{contract_key}",
                     path_params: {
+                        /// The Customer\_Key that owns the contract.
                         customer_key: $crate::types::CustomerKey = "customer_key",
+                        /// The Contract\_Key of the contract to update.
                         contract_key: $crate::types::ContractKey = "contract_key",
                     },
-                    query: {},
-                    body: json($crate::schema::ContractRequest),
+                    query: [],
+                    body: [json $crate::schema::ContractRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -1491,16 +1627,16 @@ macro_rules! operation_table {
                 /// - Returns the created entity mapped to a CustomFieldResponse via
                 /// AutoMapper (containing the generated CustomFieldId and all field
                 /// properties).
-                create {
+                create => Create {
                     id: "CustomFields_CreateCustomField",
                     method: POST,
                     path: "/customfields",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CustomFieldRequest),
+                    query: [],
+                    body: [json $crate::schema::CustomFieldRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get all custom field definitions for the authenticated merchant.
@@ -1514,16 +1650,16 @@ macro_rules! operation_table {
                 /// IsNumeric, DecimalPlaces, MinValue, MaxValue,
                 /// MinLength, MaxLength, RegEx, ErrorMessage, and
                 /// DisplayOnReceipt.
-                list {
+                list => List {
                     id: "CustomFields_GetMerchantCustomFields",
                     method: GET,
                     path: "/customfields",
                     path_params: {},
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: ::std::vec::Vec<$crate::schema::CustomField>,
-                    export: false,
+                    response: json ::std::vec::Vec<$crate::schema::CustomField>,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get custom field values for a transaction.
@@ -1539,20 +1675,25 @@ macro_rules! operation_table {
                 /// CustomFieldValue objects (containing CustomFieldId, CustomFieldName,
                 /// Description, MerchantId, FieldValue, TransactionId, and
                 /// DisplayOnReceipt).
-                transaction_values {
+                transaction_values => TransactionValues {
                     id: "CustomFields_GetTransactionCustomFieldValues",
                     method: GET,
                     path: "/transactions/{transaction_id}/customfields",
                     path_params: {
+                        /// The TRX\_HD\_Key of the transaction to retrieve custom
+                        /// field values for. Must be non-zero.
                         transaction_id: $crate::types::TransactionId = "transaction_id",
                     },
-                    query: {
+                    query: [TransactionValuesParams {
+                        /// Optional filter. When true, returns only custom field
+                        /// values where DisplayOnVTReceipt is true. When false, returns only values where
+                        /// it is false. When null (default), returns all custom field values.
                         display_on_receipt: bool = "display_on_receipt",
-                    },
-                    body: none,
+                    }],
+                    body: [],
                     merchant: none,
-                    response: ::std::vec::Vec<$crate::schema::CustomField>,
-                    export: false,
+                    response: json ::std::vec::Vec<$crate::schema::CustomField>,
+                    export: [],
                     deprecated: false,
                 }
                 /// Update a custom field definition.
@@ -1573,18 +1714,20 @@ macro_rules! operation_table {
                 /// SaveChanges.
                 /// - Returns the updated entity mapped to a CustomFieldResponse via
                 /// AutoMapper.
-                update {
+                update => Update {
                     id: "CustomFields_UpdateCustomField",
                     method: PUT,
                     path: "/customfields/{custom_field_id}",
                     path_params: {
+                        /// The Custom\_Field\_Key of the custom field to
+                        /// update.
                         custom_field_id: $crate::types::CustomFieldId = "custom_field_id",
                     },
-                    query: {},
-                    body: json($crate::schema::CustomFieldRequest),
+                    query: [],
+                    body: [json $crate::schema::CustomFieldRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -1596,22 +1739,26 @@ macro_rules! operation_table {
                 /// network tokenization events engine. Date ranges are validated against the data retention policy
                 /// (maximum years back and maximum range in days, configured via SSM feature flags).
                 /// Verifies the caller has access to the merchant that owns the customer.
-                card_token_events {
+                card_token_events => CardTokenEvents {
                     id: "CardTokens_GetCardTokenEventsAsync",
                     method: GET,
                     path: "/customers/{customer_key}/cardtoken-events",
                     path_params: {
+                        /// The customer key whose card token events to retrieve. Must be non-zero.
                         customer_key: $crate::types::CustomerKey = "customer_key",
                     },
-                    query: {
+                    query: [CardTokenEventsParams {
+                        /// Optional start date for the event query. Defaults to DateTimeOffset.MinValue.
                         from_date: $crate::types::DateTime = "from_date",
+                        /// Optional end date for the event query. Defaults to DateTimeOffset.MaxValue.
                         to_date: $crate::types::DateTime = "to_date",
+                        /// Optional cursor for pagination, returned from a previous call.
                         cursor: ::std::string::String = "cursor",
-                    },
-                    body: none,
+                    }],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Create a new customer for the authenticated merchant.
@@ -1621,34 +1768,35 @@ macro_rules! operation_table {
                 /// records, sets the merchant key from the request header, defaults the status to Active,
                 /// sets Creation\_DT to the current time, and saves to the database. Requires the merchant
                 /// ID header.
-                create {
+                create => Create {
                     id: "Customer_CreateCustomer",
                     method: POST,
                     path: "/customers",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CustomerRequest),
+                    query: [],
+                    body: [json $crate::schema::CustomerRequest],
                     merchant: optional,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Create an ACH token for a customer.
                 ///
                 /// Creates a new ACH token for a specific customer, storing the bank account information as a tokenized payment method.
                 /// Validates that external payment tokens are allowed for the merchant if provided.
-                create_ach_token {
+                create_ach_token => CreateAchToken {
                     id: "CreateCustomerAchTokens",
                     method: POST,
                     path: "/customers/{customer_key}/achtokens",
                     path_params: {
+                        /// The customer key to associate the token with. Must be non-zero.
                         customer_key: $crate::types::CustomerKey = "customer_key",
                     },
-                    query: {},
-                    body: json($crate::schema::CreateAchTokenRequest),
+                    query: [],
+                    body: [json $crate::schema::CreateAchTokenRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Create a card token for a customer.
@@ -1657,55 +1805,60 @@ macro_rules! operation_table {
                 /// name on card, address, and nickname. Performs BIN data lookup to determine card brand and type,
                 /// checks network tokenization eligibility via CyberSource, and creates a network token if eligible.
                 /// Emits a StoreCardEvent gateway event. Verifies the caller has access to the owning merchant.
-                create_card_token {
+                create_card_token => CreateCardToken {
                     id: "CreateCustomerCardTokenAsync",
                     method: POST,
                     path: "/customers/{customer_key}/cardtokens",
                     path_params: {
+                        /// The customer key to associate the card token with. Must be non-zero.
                         customer_key: $crate::types::CustomerKey = "customer_key",
                     },
-                    query: {},
-                    body: json($crate::schema::CreateCardTokenRequest),
+                    query: [],
+                    body: [json $crate::schema::CreateCardTokenRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Delete an ACH token for a customer.
                 ///
                 /// Deletes an ACH token for a specific customer. The token cannot be deleted if it is attached to an active contract.
-                delete_ach_token {
+                delete_ach_token => DeleteAchToken {
                     id: "DeleteCustomerAchToken",
                     method: DELETE,
                     path: "/customers/{customer_key}/achtokens/{ach_token_key}",
                     path_params: {
+                        /// The customer key that owns the token. Must be non-zero.
                         customer_key: $crate::types::CustomerKey = "customer_key",
+                        /// The ACH token key to delete. Must be non-zero.
                         ach_token_key: $crate::types::AchTokenKey = "ach_token_key",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Delete a card token for a customer.
                 ///
                 /// Deletes a card token for a specific customer. Soft-deletes the card token record.
                 /// Verifies the caller has access to the owning merchant.
-                delete_card_token {
+                delete_card_token => DeleteCardToken {
                     id: "DeleteCustomerCardToken",
                     method: DELETE,
                     path: "/customers/{customer_key}/cardtokens/{card_token_key}",
                     path_params: {
+                        /// The customer key that owns the card token. Must be non-zero.
                         customer_key: $crate::types::CustomerKey = "customer_key",
+                        /// The card token key to delete. Must be non-zero.
                         card_token_key: $crate::types::CardTokenKey = "card_token_key",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get a customer by key.
@@ -1713,38 +1866,42 @@ macro_rules! operation_table {
                 /// Retrieves a single customer by key. Looks up the Customer\_T record (including
                 /// Contacts\_T and Address\_T) and maps it to a CustomerResponse.
                 /// Verifies the authenticated user has access to the customer's owning merchant before returning.
-                get {
+                get => Get {
                     id: "Customer_GetCustomer",
                     method: GET,
                     path: "/customers/{customer_key}",
                     path_params: {
+                        /// The customer key (Customer\_Key). Must be non-zero (validated by `NonZeroAttribute`).
                         customer_key: $crate::types::CustomerKey = "customer_key",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get an ACH token for a customer.
                 ///
                 /// Retrieves a specific ACH token for a customer, optionally including the decline count from decline tracking.
-                get_ach_token {
+                get_ach_token => GetAchToken {
                     id: "GetCustomerAchToken",
                     method: GET,
                     path: "/customers/{customer_key}/achtokens/{ach_token_key}",
                     path_params: {
+                        /// The customer key that owns the token. Must be non-zero.
                         customer_key: $crate::types::CustomerKey = "customer_key",
+                        /// The ACH token key to retrieve. Must be non-zero.
                         ach_token_key: $crate::types::AchTokenKey = "ach_token_key",
                     },
-                    query: {
+                    query: [GetAchTokenParams {
+                        /// If true, includes the decline count for the token from the decline tracking service.
                         include_decline_count: bool = "include_decline_count",
-                    },
-                    body: none,
+                    }],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get a card token for a customer.
@@ -1754,21 +1911,24 @@ macro_rules! operation_table {
                 /// expiration date, card type/brand, name on card, address fields, nickname, customer ID,
                 /// and optionally network tokenized card details. If the token is not found or the customer key
                 /// doesn't match, throws ItemNotFoundException.
-                get_card_token {
+                get_card_token => GetCardToken {
                     id: "GetCustomerCardTokenAsync",
                     method: GET,
                     path: "/customers/{customer_key}/cardtokens/{card_token_key}",
                     path_params: {
+                        /// The customer key that owns the card token. Must be non-zero.
                         customer_key: $crate::types::CustomerKey = "customer_key",
+                        /// The card token key to retrieve. Must be non-zero.
                         card_token_key: $crate::types::CardTokenKey = "card_token_key",
                     },
-                    query: {
+                    query: [GetCardTokenParams {
+                        /// When true, includes the decline count for the card token. Defaults to false.
                         include_decline_count: bool = "include_decline_count",
-                    },
-                    body: none,
+                    }],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get all customers for the authenticated merchant.
@@ -1777,51 +1937,53 @@ macro_rules! operation_table {
                 /// records (including Contacts\_T and Address\_T) filtered by the merchant ID
                 /// from the request header, and maps them to a list of CustomerResponse objects.
                 /// Requires the merchant ID header.
-                list {
+                list => List {
                     id: "Customer_GetCustomers",
                     method: GET,
                     path: "/customers",
                     path_params: {},
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: optional,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get all ACH tokens for a customer.
                 ///
                 /// Retrieves all ACH tokens associated with a specific customer.
-                list_ach_tokens {
+                list_ach_tokens => ListAchTokens {
                     id: "AchTokens_GetAchTokens",
                     method: GET,
                     path: "/customers/{customer_key}/achtokens",
                     path_params: {
+                        /// The customer key whose ACH tokens to retrieve. Must be non-zero.
                         customer_key: $crate::types::CustomerKey = "customer_key",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get all card tokens for a customer.
                 ///
                 /// Retrieves all card tokens for a given customer. Verifies the caller has access to the merchant
                 /// that owns the customer record. Returns a list of card token details.
-                list_card_tokens {
+                list_card_tokens => ListCardTokens {
                     id: "CardTokens_GetCardTokens",
                     method: GET,
                     path: "/customers/{customer_key}/cardtokens",
                     path_params: {
+                        /// The customer key whose card tokens to retrieve. Must be non-zero.
                         customer_key: $crate::types::CustomerKey = "customer_key",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Partially update a customer by key.
@@ -1833,36 +1995,39 @@ macro_rules! operation_table {
                 /// fields are individually merged only when provided. Updates Last\_Update\_DT to the
                 /// current time. Verifies the authenticated user has access to the customer's owning merchant
                 /// before patching.
-                patch {
+                patch => Patch {
                     id: "Customer_PatchCustomer",
                     method: PATCH,
                     path: "/customers/{customer_key}",
                     path_params: {
+                        /// The customer key to patch. Must be non-zero (validated by `NonZeroAttribute`).
                         customer_key: $crate::types::CustomerKey = "customer_key",
                     },
-                    query: {},
-                    body: json($crate::schema::CustomerBaseRequest),
+                    query: [],
+                    body: [json $crate::schema::CustomerBaseRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Partially update an ACH token for a customer.
                 ///
                 /// Partially updates an ACH token for a specific customer, modifying only the fields provided in the request.
-                patch_ach_token {
+                patch_ach_token => PatchAchToken {
                     id: "UpdatePartialCustomerAchToken",
                     method: PATCH,
                     path: "/customers/{customer_key}/achtokens/{ach_token_key}",
                     path_params: {
+                        /// The customer key that owns the token. Must be non-zero.
                         customer_key: $crate::types::CustomerKey = "customer_key",
+                        /// The ACH token key to update. Must be non-zero.
                         ach_token_key: $crate::types::AchTokenKey = "ach_token_key",
                     },
-                    query: {},
-                    body: json($crate::schema::AchTokenBaseRequest),
+                    query: [],
+                    body: [json $crate::schema::AchTokenBaseRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Partially update a card token for a customer.
@@ -1872,19 +2037,21 @@ macro_rules! operation_table {
                 /// Updatable fields include expiration date, name on card, address, nickname, and card number.
                 /// If the card number is changed, BIN data lookup and network tokenization eligibility are re-evaluated.
                 /// Verifies the caller has access to the owning merchant.
-                patch_card_token {
+                patch_card_token => PatchCardToken {
                     id: "UpdatePartialCustomerCardTokenAsync",
                     method: PATCH,
                     path: "/customers/{customer_key}/cardtokens/{card_token_key}",
                     path_params: {
+                        /// The customer key that owns the card token. Must be non-zero.
                         customer_key: $crate::types::CustomerKey = "customer_key",
+                        /// The card token key to patch. Must be non-zero.
                         card_token_key: $crate::types::CardTokenKey = "card_token_key",
                     },
-                    query: {},
-                    body: json($crate::schema::CardTokenBaseRequest),
+                    query: [],
+                    body: [json $crate::schema::CardTokenBaseRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Fully update a customer by key.
@@ -1895,37 +2062,40 @@ macro_rules! operation_table {
                 /// \[JsonIgnore\] on CustomerRequest), contact (first name, last name, email),
                 /// and address fields are all overwritten. Updates Last\_Update\_DT to the current time.
                 /// Verifies the authenticated user has access to the customer's owning merchant before updating.
-                update {
+                update => Update {
                     id: "Customer_UpdateCustomer",
                     method: PUT,
                     path: "/customers/{customer_key}",
                     path_params: {
+                        /// The customer key to update. Must be non-zero (validated by `NonZeroAttribute`).
                         customer_key: $crate::types::CustomerKey = "customer_key",
                     },
-                    query: {},
-                    body: json($crate::schema::CustomerRequest),
+                    query: [],
+                    body: [json $crate::schema::CustomerRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Update an ACH token for a customer.
                 ///
                 /// Fully updates an existing ACH token for a customer, replacing all token fields with the provided values.
                 /// Validates that external payment tokens are allowed for the merchant if provided.
-                update_ach_token {
+                update_ach_token => UpdateAchToken {
                     id: "UpdateCustomerAchToken",
                     method: PUT,
                     path: "/customers/{customer_key}/achtokens/{ach_token_key}",
                     path_params: {
+                        /// The customer key that owns the token. Must be non-zero.
                         customer_key: $crate::types::CustomerKey = "customer_key",
+                        /// The ACH token key to update. Must be non-zero.
                         ach_token_key: $crate::types::AchTokenKey = "ach_token_key",
                     },
-                    query: {},
-                    body: json($crate::schema::CreateAchTokenRequest),
+                    query: [],
+                    body: [json $crate::schema::CreateAchTokenRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Update a card token for a customer.
@@ -1934,19 +2104,21 @@ macro_rules! operation_table {
                 /// expiration date, name on card, address, nickname) with the provided values. Performs BIN data
                 /// lookup, PAN encryption, and network tokenization eligibility check. Emits an UpdateCardEvent
                 /// gateway event. Verifies the caller has access to the owning merchant.
-                update_card_token {
+                update_card_token => UpdateCardToken {
                     id: "UpdateCustomerCardTokenAsync",
                     method: PUT,
                     path: "/customers/{customer_key}/cardtokens/{card_token_key}",
                     path_params: {
+                        /// The customer key that owns the card token. Must be non-zero.
                         customer_key: $crate::types::CustomerKey = "customer_key",
+                        /// The card token key to update. Must be non-zero.
                         card_token_key: $crate::types::CardTokenKey = "card_token_key",
                     },
-                    query: {},
-                    body: json($crate::schema::CreateCardTokenRequest),
+                    query: [],
+                    body: [json $crate::schema::CreateCardTokenRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -1959,16 +2131,16 @@ macro_rules! operation_table {
                 /// IApplePayWebSession.GetWebSessionAsync. The response is mapped back to a
                 /// `DigitalWalletWebSessionResponse`. Throws BadRequestException for invalid
                 /// requests (e.g., invalid domain) and InternalServerErrorException for unexpected errors.
-                apple_pay_web_session {
+                apple_pay_web_session => ApplePayWebSession {
                     id: "DigitalWallet_ProcessApplePayWebSession",
                     method: POST,
                     path: "/digitalwallet/applepay/websession",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::DigitalWalletWebSessionRequest),
+                    query: [],
+                    body: [json $crate::schema::DigitalWalletWebSessionRequest],
                     merchant: none,
-                    response: $crate::schema::DigitalWalletWebSessionResponse,
-                    export: false,
+                    response: json $crate::schema::DigitalWalletWebSessionResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Delete a digital wallet merchant.
@@ -1979,20 +2151,21 @@ macro_rules! operation_table {
                 /// IMerchantRegistration.DeleteMerchantAsync. Throws BadRequestException for
                 /// InvalidRequestException errors and InternalServerErrorException for unexpected
                 /// errors.
-                delete_merchant {
+                delete_merchant => DeleteMerchant {
                     id: "DigitalWallet_DeleteMerchant",
                     method: DELETE,
                     path: "/digitalwallet/merchants/{request.wallet_merchant_id}",
                     path_params: {
                         wallet_merchant_id: ::std::string::String = "request.wallet_merchant_id",
                     },
-                    query: {
+                    query: [DeleteMerchantParams {
+                        /// A value indicating whether to use test keys for the digital wallet URI request.
                         use_test_keys: bool = "request.use_test_keys",
-                    },
-                    body: none,
+                    }],
+                    body: [],
                     merchant: none,
-                    response: (),
-                    export: false,
+                    response: empty,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get digital wallet merchant details.
@@ -2005,20 +2178,21 @@ macro_rules! operation_table {
                 /// Services (ApplePay enabled flag, domain names). After retrieval, checks if the merchant
                 /// was not found (ApplePay not enabled and no domain names configured), throwing
                 /// ItemNotFoundException in that case.
-                get_merchant {
+                get_merchant => GetMerchant {
                     id: "DigitalWallet_GetMerchant",
                     method: GET,
                     path: "/digitalwallet/merchants/{request.wallet_merchant_id}",
                     path_params: {
                         wallet_merchant_id: ::std::string::String = "request.wallet_merchant_id",
                     },
-                    query: {
+                    query: [GetMerchantParams {
+                        /// A value indicating whether to use test keys for the digital wallet URI request.
                         use_test_keys: bool = "request.use_test_keys",
-                    },
-                    body: none,
+                    }],
+                    body: [],
                     merchant: none,
-                    response: $crate::schema::DigitalWalletMerchantDetailsResponse,
-                    export: false,
+                    response: json $crate::schema::DigitalWalletMerchantDetailsResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Register a new digital wallet merchant.
@@ -2030,16 +2204,16 @@ macro_rules! operation_table {
                 /// is temporarily disabled per RG-9167 (TODO: revert in the future). Throws
                 /// BadRequestException for InvalidRequestException errors and
                 /// InternalServerErrorException for unexpected errors.
-                register_merchant {
+                register_merchant => RegisterMerchant {
                     id: "DigitalWallet_ProcessMerchantRegistration",
                     method: POST,
                     path: "/digitalwallet/merchants/register",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::DigitalWalletMerchantRequest),
+                    query: [],
+                    body: [json $crate::schema::DigitalWalletMerchantRequest],
                     merchant: none,
-                    response: $crate::schema::DigitalWalletMerchantDetailsResponse,
-                    export: false,
+                    response: json $crate::schema::DigitalWalletMerchantDetailsResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Update a digital wallet merchant's configuration.
@@ -2052,16 +2226,16 @@ macro_rules! operation_table {
                 /// disabled per RG-9167 (TODO: revert in the future). Throws BadRequestException for
                 /// InvalidRequestException errors and InternalServerErrorException for unexpected
                 /// errors.
-                update_merchant {
+                update_merchant => UpdateMerchant {
                     id: "DigitalWallet_ProcessMerchantUpdate",
                     method: POST,
                     path: "/digitalwallet/merchants",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::DigitalWalletMerchantRequest),
+                    query: [],
+                    body: [json $crate::schema::DigitalWalletMerchantRequest],
                     merchant: none,
-                    response: $crate::schema::DigitalWalletMerchantDetailsResponse,
-                    export: false,
+                    response: json $crate::schema::DigitalWalletMerchantDetailsResponse,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -2077,16 +2251,16 @@ macro_rules! operation_table {
                 /// SSM feature flag. Uses CardAuthMethod.APAY\_DW as the authentication method. Results
                 /// are mapped to `DigitalWalletTransactionDetailCard`. Emits CardAuthEvent and
                 /// CardTransaction gateway events. Reseller users must provide the MerchantId header.
-                apple_pay_auth {
+                apple_pay_auth => ApplePayAuth {
                     id: "DigitalWalletTransactions_ProcessApplePayAuth",
                     method: POST,
                     path: "/transactions/applepay/auth",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::DigitalWalletRequest),
+                    query: [],
+                    body: [json $crate::schema::DigitalWalletRequest],
                     merchant: none,
-                    response: $crate::schema::DigitalWalletTransactionDetailCard,
-                    export: false,
+                    response: json $crate::schema::DigitalWalletTransactionDetailCard,
+                    export: [],
                     deprecated: false,
                 }
                 /// Process a card sale via Apple Pay.
@@ -2101,16 +2275,16 @@ macro_rules! operation_table {
                 /// as the authentication method. Results are mapped to `DigitalWalletTransactionDetailCard`.
                 /// The transaction is immediately captured for settlement. Emits CardSaleEvent and
                 /// CardTransaction gateway events. Reseller users must provide the MerchantId header.
-                apple_pay_sale {
+                apple_pay_sale => ApplePaySale {
                     id: "DigitalWalletTransactions_ProcessApplePaySale",
                     method: POST,
                     path: "/transactions/applepay/sale",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::DigitalWalletRequest),
+                    query: [],
+                    body: [json $crate::schema::DigitalWalletRequest],
                     merchant: none,
-                    response: $crate::schema::DigitalWalletTransactionDetailCard,
-                    export: false,
+                    response: json $crate::schema::DigitalWalletTransactionDetailCard,
+                    export: [],
                     deprecated: false,
                 }
                 /// Authorize a card transaction via Google Pay.
@@ -2128,16 +2302,16 @@ macro_rules! operation_table {
                 /// list if null. Results are mapped to `DigitalWalletTransactionDetailCard`. Emits
                 /// CardAuthEvent and CardTransaction gateway events. Reseller users must provide the
                 /// MerchantId header.
-                google_pay_auth {
+                google_pay_auth => GooglePayAuth {
                     id: "DigitalWalletTransactions_ProcessGooglePayAuth",
                     method: POST,
                     path: "/transactions/googlepay/auth",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::GooglePayDigitalWalletRequest),
+                    query: [],
+                    body: [json $crate::schema::GooglePayDigitalWalletRequest],
                     merchant: none,
-                    response: $crate::schema::DigitalWalletTransactionDetailCard,
-                    export: false,
+                    response: json $crate::schema::DigitalWalletTransactionDetailCard,
+                    export: [],
                     deprecated: false,
                 }
                 /// Process a card sale via Google Pay.
@@ -2155,16 +2329,16 @@ macro_rules! operation_table {
                 /// feature flag. The transaction is immediately captured for settlement. Results are mapped to
                 /// `DigitalWalletTransactionDetailCard`. Emits CardSaleEvent and
                 /// CardTransaction gateway events. Reseller users must provide the MerchantId header.
-                google_pay_sale {
+                google_pay_sale => GooglePaySale {
                     id: "DigitalWalletTransactions_ProcessGooglePaySale",
                     method: POST,
                     path: "/transactions/googlepay/sale",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::GooglePayDigitalWalletRequest),
+                    query: [],
+                    body: [json $crate::schema::GooglePayDigitalWalletRequest],
                     merchant: none,
-                    response: $crate::schema::DigitalWalletTransactionDetailCard,
-                    export: false,
+                    response: json $crate::schema::DigitalWalletTransactionDetailCard,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -2174,36 +2348,38 @@ macro_rules! operation_table {
                 /// Activates a fraud velocity template, propagating its velocity limit settings (card, ACH, disbursement
                 /// tracking and notification flags) to all associated merchant XML profiles. If the template is already
                 /// active, returns HTTP 200 without changes.
-                activate {
+                activate => Activate {
                     id: "FraudVelocityTemplate_ActivateTemplate",
                     method: PUT,
                     path: "/fraudvelocity/template/{template_id}/activate",
                     path_params: {
+                        /// The unique identifier of the template to activate.
                         template_id: $crate::types::TemplateId = "template_id",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: (),
-                    export: false,
+                    response: empty,
+                    export: [],
                     deprecated: false,
                 }
                 /// Add merchants to a fraud velocity template.
                 ///
                 /// Adds merchants to a fraud velocity template by appending the specified merchant keys to the template's
                 /// merchant metadata list. The updated template is persisted to DynamoDB and merchant XML profiles are updated.
-                add_merchants {
+                add_merchants => AddMerchants {
                     id: "FraudVelocityTemplate_AddMerchant",
                     method: PUT,
                     path: "/fraudvelocity/template/{template_id}/merchants/add",
                     path_params: {
+                        /// The unique identifier of the template to add merchants to.
                         template_id: $crate::types::TemplateId = "template_id",
                     },
-                    query: {},
-                    body: json(::std::vec::Vec<i32>),
+                    query: [],
+                    body: [json ::std::vec::Vec<i32>],
                     merchant: none,
-                    response: $crate::schema::FraudVelocityTemplate,
-                    export: false,
+                    response: json $crate::schema::FraudVelocityTemplate,
+                    export: [],
                     deprecated: false,
                 }
                 /// Create a new fraud velocity template.
@@ -2211,34 +2387,35 @@ macro_rules! operation_table {
                 /// Creates a new fraud velocity template. If an ID is provided and a template with that ID already exists,
                 /// returns HTTP 409 (Conflict). The template is persisted to DynamoDB and associated merchant XML profiles
                 /// are updated with the template's velocity limit configuration.
-                create {
+                create => Create {
                     id: "FraudVelocityTemplate_CreateTemplate",
                     method: POST,
                     path: "/fraudvelocity/template",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::FraudVelocityTemplate),
+                    query: [],
+                    body: [json $crate::schema::FraudVelocityTemplate],
                     merchant: none,
-                    response: $crate::schema::FraudVelocityTemplate,
-                    export: false,
+                    response: json $crate::schema::FraudVelocityTemplate,
+                    export: [],
                     deprecated: false,
                 }
                 /// Deactivate a fraud velocity template.
                 ///
                 /// Deactivates a fraud velocity template, disabling its velocity limit settings on all associated merchant
                 /// XML profiles. If the template is already inactive, returns HTTP 200 without changes.
-                deactivate {
+                deactivate => Deactivate {
                     id: "FraudVelocityTemplate_DeactivateTemplate",
                     method: PUT,
                     path: "/fraudvelocity/template/{template_id}/deactivate",
                     path_params: {
+                        /// The unique identifier of the template to deactivate.
                         template_id: $crate::types::TemplateId = "template_id",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: (),
-                    export: false,
+                    response: empty,
+                    export: [],
                     deprecated: false,
                 }
                 /// Delete a fraud velocity template by ID.
@@ -2246,36 +2423,38 @@ macro_rules! operation_table {
                 /// Deletes a fraud velocity template by its ID. Active templates cannot be deleted and will return HTTP 400.
                 /// On removal, the template is deleted from DynamoDB and all associated merchant XML profiles have their
                 /// velocity limit settings disabled and template references cleared.
-                delete {
+                delete => Delete {
                     id: "FraudVelocityTemplate_DeleteTemplate",
                     method: DELETE,
                     path: "/fraudvelocity/template/{template_id}",
                     path_params: {
+                        /// The unique identifier of the template to delete.
                         template_id: $crate::types::TemplateId = "template_id",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: (),
-                    export: false,
+                    response: empty,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get a fraud velocity template by ID.
                 ///
                 /// Retrieves a single fraud velocity template by its ID, mapped to the public `FraudVelocityTemplate` response model
                 /// containing ID, name, active status, timezone, card/ACH/disbursement settings, custom messages, and merchant keys.
-                get {
+                get => Get {
                     id: "FraudVelocityTemplate_GetTemplate",
                     method: GET,
                     path: "/fraudvelocity/template/{template_id}",
                     path_params: {
+                        /// The unique identifier of the template to retrieve.
                         template_id: $crate::types::TemplateId = "template_id",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::schema::FraudVelocityTemplate,
-                    export: false,
+                    response: json $crate::schema::FraudVelocityTemplate,
+                    export: [],
                     deprecated: false,
                 }
                 /// Partially update a fraud velocity template.
@@ -2283,34 +2462,35 @@ macro_rules! operation_table {
                 /// Partially updates an existing fraud velocity template by merging the provided fields into the existing template.
                 /// Only non-null/non-empty fields in the request overwrite the corresponding fields on the existing template.
                 /// Mergeable fields include name, active status, merchant keys, timezone, and card/ACH/disbursement velocity settings.
-                patch {
+                patch => Patch {
                     id: "FraudVelocityTemplate_UpdateTemplate",
                     method: PATCH,
                     path: "/fraudvelocity/template",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::FraudVelocityTemplate),
+                    query: [],
+                    body: [json $crate::schema::FraudVelocityTemplate],
                     merchant: none,
-                    response: $crate::schema::FraudVelocityTemplate,
-                    export: false,
+                    response: json $crate::schema::FraudVelocityTemplate,
+                    export: [],
                     deprecated: false,
                 }
                 /// Remove merchants from a fraud velocity template.
                 ///
                 /// Removes merchants from a fraud velocity template by removing the specified merchant keys from the template's
                 /// merchant metadata list. The updated template is persisted to DynamoDB and merchant XML profiles are updated.
-                remove_merchants {
+                remove_merchants => RemoveMerchants {
                     id: "FraudVelocityTemplate_RemoveMerchant",
                     method: PUT,
                     path: "/fraudvelocity/template/{template_id}/merchants/remove",
                     path_params: {
+                        /// The unique identifier of the template to remove merchants from.
                         template_id: $crate::types::TemplateId = "template_id",
                     },
-                    query: {},
-                    body: json(::std::vec::Vec<i32>),
+                    query: [],
+                    body: [json ::std::vec::Vec<i32>],
                     merchant: none,
-                    response: $crate::schema::FraudVelocityTemplate,
-                    export: false,
+                    response: json $crate::schema::FraudVelocityTemplate,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -2320,16 +2500,16 @@ macro_rules! operation_table {
                 /// Basic liveness health check endpoint. Returns HTTP 200 with no body to indicate the API
                 /// process is running and responsive. Does not verify database, DynamoDB, or processor
                 /// connectivity. Visible in Swagger API documentation.
-                check {
+                check => Check {
                     id: "HealthCheck_HealthCheck",
                     method: GET,
                     path: "/health",
                     path_params: {},
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: ::std::string::String,
-                    export: false,
+                    response: json ::std::string::String,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -2340,18 +2520,19 @@ macro_rules! operation_table {
                 /// The request body contains merchant configuration as key-value pairs that are transformed into
                 /// the eCash create merchant JSON request format. An audit trail entry is recorded on success.
                 /// Restricted to reseller users with security level 5 or higher.
-                create_ecash_merchant {
+                create_ecash_merchant => CreateEcashMerchant {
                     id: "PaymentServicesOnboarding_CreateECashMerchant",
                     method: POST,
                     path: "/paymentservicesonboarding/ecash/create/{org_id}",
                     path_params: {
+                        /// The REPAY organization identifier (GUID) for the new merchant.
                         org_id: $crate::types::OrgId = "org_id",
                     },
-                    query: {},
-                    body: json(::std::collections::BTreeMap<::std::string::String, ::std::string::String>),
+                    query: [],
+                    body: [json ::std::collections::BTreeMap<::std::string::String, ::std::string::String>],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get eCash merchant details by organization ID.
@@ -2359,18 +2540,19 @@ macro_rules! operation_table {
                 /// Retrieves eCash settlement service merchant details by organization ID.
                 /// Returns the merchant's configuration as a key-value dictionary including organization info,
                 /// account details, portfolio settings, and billing information.
-                ecash_merchant {
+                ecash_merchant => EcashMerchant {
                     id: "PaymentServicesOnboarding_GetMerchantInfo",
                     method: GET,
                     path: "/paymentservicesonboarding/ecash/{org_id}",
                     path_params: {
+                        /// The REPAY organization identifier (GUID) assigned to the merchant.
                         org_id: $crate::types::OrgId = "org_id",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// List TSYS net settlement merchants by criteria.
@@ -2379,16 +2561,16 @@ macro_rules! operation_table {
                 /// request body. The request key-value pairs are transformed into a list-merchants Lambda
                 /// request containing one or more gateway MIDs and/or RCS MIDs. Returns the matching merchants
                 /// as a key-value dictionary. Restricted to reseller users with security level 5 or higher.
-                list_net_settlement_merchants {
+                list_net_settlement_merchants => ListNetSettlementMerchants {
                     id: "PaymentServicesOnboarding_ListNetSettlementMerchants",
                     method: GET,
                     path: "/paymentservicesonboarding/net-settlement/list-merchants",
                     path_params: {},
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get a TSYS net settlement merchant by criteria.
@@ -2398,16 +2580,16 @@ macro_rules! operation_table {
                 /// request containing gateway MID and/or RCS MID identifiers. Returns the merchant
                 /// configuration as a key-value dictionary. Restricted to reseller users with security
                 /// level 5 or higher.
-                net_settlement_merchant {
+                net_settlement_merchant => NetSettlementMerchant {
                     id: "PaymentServicesOnboarding_GetNetSettlementMerchant",
                     method: POST,
                     path: "/paymentservicesonboarding/net-settlement/get-merchant",
                     path_params: {},
-                    query: {},
-                    body: json(::std::collections::BTreeMap<::std::string::String, ::std::string::String>),
+                    query: [],
+                    body: [json ::std::collections::BTreeMap<::std::string::String, ::std::string::String>],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Query organization details by operating unit IDs.
@@ -2417,16 +2599,16 @@ macro_rules! operation_table {
                 /// the lender's applications and operating units. For TSYS net settlement, also expands TSYS MIDs.
                 /// Returns the application name, organization ID, and organization name for each match.
                 /// Restricted to reseller users with security level 5 or higher.
-                organizations {
+                organizations => Organizations {
                     id: "PaymentServicesOnboarding_GetOrganizationInfo",
                     method: POST,
                     path: "/paymentservicesonboarding/organization/query",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::GetOrganizationInfoRequest),
+                    query: [],
+                    body: [json $crate::schema::GetOrganizationInfoRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get all originating applications from the EIN Manager.
@@ -2434,16 +2616,16 @@ macro_rules! operation_table {
                 /// Retrieves all originating applications registered in the EIN Manager system.
                 /// Used by the merchant onboarding UI to populate the list of available systems (e.g., "tsys-net-settlement").
                 /// Restricted to reseller users with security level 5 or higher.
-                originating_applications {
+                originating_applications => OriginatingApplications {
                     id: "PaymentServicesOnboarding_GetOriginatingApplications",
                     method: GET,
                     path: "/paymentservicesonboarding/query/originating-applications",
                     path_params: {},
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Update an eCash merchant for an organization.
@@ -2452,18 +2634,19 @@ macro_rules! operation_table {
                 /// The request body contains updated merchant configuration as key-value pairs that are transformed into
                 /// the eCash update merchant JSON request format. Only the supplied values are updated.
                 /// An audit trail entry is recorded on success. Restricted to reseller users with security level 5 or higher.
-                update_ecash_merchant {
+                update_ecash_merchant => UpdateEcashMerchant {
                     id: "PaymentServicesOnboarding_UpdateECashMerchant",
                     method: POST,
                     path: "/paymentservicesonboarding/ecash/update/{org_id}",
                     path_params: {
+                        /// The REPAY organization identifier (GUID) of the merchant to update.
                         org_id: $crate::types::OrgId = "org_id",
                     },
-                    query: {},
-                    body: json(::std::collections::BTreeMap<::std::string::String, ::std::string::String>),
+                    query: [],
+                    body: [json ::std::collections::BTreeMap<::std::string::String, ::std::string::String>],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Create or update a TSYS net settlement merchant.
@@ -2473,16 +2656,16 @@ macro_rules! operation_table {
                 /// create/update request format, including SouthState FBO/RPY account and routing numbers from
                 /// configuration. Invokes the net settlement Lambda function. An audit trail entry is recorded
                 /// on success. Restricted to reseller users with security level 5 or higher.
-                upsert_net_settlement_merchant {
+                upsert_net_settlement_merchant => UpsertNetSettlementMerchant {
                     id: "PaymentServicesOnboarding_CreateOrUpdateNetSettlementMerchant",
                     method: POST,
                     path: "/paymentservicesonboarding/net-settlement/create-or-update",
                     path_params: {},
-                    query: {},
-                    body: json(::std::collections::BTreeMap<::std::string::String, ::std::string::String>),
+                    query: [],
+                    body: [json ::std::collections::BTreeMap<::std::string::String, ::std::string::String>],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -2496,16 +2679,16 @@ macro_rules! operation_table {
                 /// Supports filtering by currency, funding type ("All", "Batch", "RealTime"), transaction status
                 /// ("Approvals", "Declines", "All"), and optional merchant ID prefix.
                 /// Returns results in JSON, CSV, or Excel format.
-                disbursements {
+                disbursements => Disbursements {
                     id: "ResellerReports_QueryDisbursementReport",
                     method: POST,
                     path: "/reseller/transactions/card/disbursement/query",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CardDisbursementReportRequest),
+                    query: [],
+                    body: [json $crate::schema::CardDisbursementReportRequest],
                     merchant: none,
-                    response: ::std::vec::Vec<$crate::schema::CardDisbursementReportData>,
-                    export: true,
+                    response: json ::std::vec::Vec<$crate::schema::CardDisbursementReportData>,
+                    export: [format "format"],
                     deprecated: false,
                 }
                 /// Query card transactions for reseller-level reporting (deprecated).
@@ -2521,19 +2704,21 @@ macro_rules! operation_table {
                 /// authorized user's group membership.
                 /// Returns results in JSON (with HATEOAS links), CSV, Excel, or PDF format.
                 /// If the model state is invalid, returns an empty transaction list.
-                query_transactions {
+                query_transactions => QueryTransactions {
                     id: "ResellerReports_QueryTransactions",
                     method: POST,
                     path: "/reseller/transactions/card/query",
                     path_params: {},
-                    query: {
+                    query: [QueryTransactionsParams {
+                        /// Number of records to skip for pagination.
                         skip: i32 = "skip",
+                        /// Number of records to return for pagination.
                         take: i32 = "take",
-                    },
-                    body: json($crate::schema::CardTransactionQuery),
+                    }],
+                    body: [json $crate::schema::CardTransactionQuery],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: true,
+                    response: json $crate::types::Json,
+                    export: [format "format"],
                     deprecated: true,
                 }
                 /// Query card transactions for auto-reconciliation.
@@ -2555,16 +2740,16 @@ macro_rules! operation_table {
                 /// command timeout.
                 /// Supports an optional comma-delimited transaction-type filter, an optional host-reference-number
                 /// requirement, and an optional result filter ("All", "Approvals", "Declines"; defaults to "All").
-                reconciliation {
+                reconciliation => Reconciliation {
                     id: "ResellerReports_QueryReconciliationCardTransactions",
                     method: POST,
                     path: "/reseller/transactions/card/reconciliation-query",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::ReconciliationCardQueryRequest),
+                    query: [],
+                    body: [json $crate::schema::ReconciliationCardQueryRequest],
                     merchant: none,
-                    response: $crate::schema::ReconciliationCardTransactionsReport,
-                    export: false,
+                    response: json $crate::schema::ReconciliationCardTransactionsReport,
+                    export: [],
                     deprecated: false,
                 }
                 /// Query Fiserv regional-network transaction detail for reseller-level regional reporting.
@@ -2574,19 +2759,21 @@ macro_rules! operation_table {
                 /// Acquiring Institution ID Code, etc.). Enforces the same data-retention policy limits as
                 /// the other card endpoints on this controller, and supports paging via {skip}
                 /// and {take}.
-                regional_transaction_detail {
+                regional_transaction_detail => RegionalTransactionDetail {
                     id: "ResellerReports_QueryRegionalTransactionDetail",
                     method: POST,
                     path: "/reseller/transactions/card/regional-transaction-detail/query",
                     path_params: {},
-                    query: {
+                    query: [RegionalTransactionDetailParams {
+                        /// Number of records to skip for pagination.
                         skip: i32 = "skip",
+                        /// Number of records to return for pagination.
                         take: i32 = "take",
-                    },
-                    body: json($crate::schema::RegionalTransactionDetailQueryRequest),
+                    }],
+                    body: [json $crate::schema::RegionalTransactionDetailQueryRequest],
                     merchant: none,
-                    response: $crate::schema::RegionalTransactionDetailReport,
-                    export: false,
+                    response: json $crate::schema::RegionalTransactionDetailReport,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -2602,16 +2789,16 @@ macro_rules! operation_table {
                 /// LastUpdateUserKey, saves to database, then records an audit trail entry of type
                 /// ITRRulesInserted with a snapshot of the new rule and the complete list of all request
                 /// rules at that point. Restricted to authenticated users with reseller-authorized merchant access.
-                create_request_rule {
+                create_request_rule => CreateRequestRule {
                     id: "TransRoutingConfig_CreateRequestRule",
                     method: POST,
                     path: "/intelligentroutingrules/requestrules",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::TransRoutingRuleRequest),
+                    query: [],
+                    body: [json $crate::schema::TransRoutingRuleRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Create a new response rule for the authenticated merchant.
@@ -2624,16 +2811,16 @@ macro_rules! operation_table {
                 /// saves to database, then records an audit trail entry of type ITRRulesInserted with a
                 /// snapshot of the new rule and the complete list of all response rules at that point. Restricted
                 /// to authenticated users with reseller-authorized merchant access.
-                create_response_rule {
+                create_response_rule => CreateResponseRule {
                     id: "TransRoutingConfig_CreateResponseRule",
                     method: POST,
                     path: "/intelligentroutingrules/responserules",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::TransRoutingRuleRequest),
+                    query: [],
+                    body: [json $crate::schema::TransRoutingRuleRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Delete a request rule.
@@ -2646,18 +2833,19 @@ macro_rules! operation_table {
                 /// the remaining request rules and records an audit trail entry of type ITRRulesDeleted
                 /// with the before-snapshot and the complete list of all remaining request rules. Restricted to
                 /// authenticated users with reseller-authorized merchant access.
-                delete_request_rule {
+                delete_request_rule => DeleteRequestRule {
                     id: "TransRoutingConfig_DeleteRequestRule",
                     method: DELETE,
                     path: "/intelligentroutingrules/requestrules/{rule_id}",
                     path_params: {
+                        /// The RequestRuleKey of the request rule to delete.
                         rule_id: $crate::types::RuleId = "rule_id",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Delete a response rule.
@@ -2670,18 +2858,19 @@ macro_rules! operation_table {
                 /// the remaining response rules and records an audit trail entry of type ITRRulesDeleted
                 /// with the before-snapshot and the complete list of all remaining response rules. Restricted to
                 /// authenticated users with reseller-authorized merchant access.
-                delete_response_rule {
+                delete_response_rule => DeleteResponseRule {
                     id: "TransRoutingConfig_DeleteResponseRule",
                     method: DELETE,
                     path: "/intelligentroutingrules/responserules/{rule_id}",
                     path_params: {
+                        /// The RequestRuleKey of the response rule to delete.
                         rule_id: $crate::types::RuleId = "rule_id",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get ITR rule change audit trail history.
@@ -2696,20 +2885,26 @@ macro_rules! operation_table {
                 /// before/after rule snapshots (From/To) plus the complete list of all rules
                 /// at that point (CopyList). Restricted to authenticated users with reseller-authorized
                 /// merchant access.
-                history {
+                history => History {
                     id: "TransRoutingConfig_GetHistory",
                     method: GET,
                     path: "/intelligentroutingrules/historyrules",
                     path_params: {},
-                    query: {
+                    query: [HistoryParams {
+                        /// Optional user key to filter history entries by the user who made the
+                        /// change.
                         user_key: i32 = "user_key",
+                        /// Optional start date string (parsed via DateTime.Parse) to
+                        /// filter history entries from this date onward.
                         start_date: ::std::string::String = "start_date",
+                        /// Optional end date string (parsed via DateTime.Parse) to filter
+                        /// history entries up to this date.
                         end_date: ::std::string::String = "end_date",
-                    },
-                    body: none,
+                    }],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get all request rules for the authenticated merchant.
@@ -2721,16 +2916,16 @@ macro_rules! operation_table {
                 /// (conditions and actions), merchant key, priority, and active status. Returns only the
                 /// RequestRules portion of the routing configuration. Restricted to authenticated users
                 /// with reseller-authorized merchant access.
-                request_rules {
+                request_rules => RequestRules {
                     id: "TransRoutingConfig_GetRequestRules",
                     method: GET,
                     path: "/intelligentroutingrules/requestrules",
                     path_params: {},
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get all response rules for the authenticated merchant.
@@ -2742,16 +2937,16 @@ macro_rules! operation_table {
                 /// (conditions and actions), merchant key, priority, and active status. Returns only the
                 /// ResponseRules portion of the routing configuration. Restricted to authenticated users
                 /// with reseller-authorized merchant access.
-                response_rules {
+                response_rules => ResponseRules {
                     id: "TransRoutingConfig_GetResponseRules",
                     method: GET,
                     path: "/intelligentroutingrules/responserules",
                     path_params: {},
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Rollback an ITR rule to a previous audit trail snapshot state.
@@ -2773,18 +2968,20 @@ macro_rules! operation_table {
                 /// restored from the snapshot. Takes before/after audit snapshots and records an audit trail entry
                 /// of type ITRRulesRolledBack. Restricted to authenticated users with reseller-authorized
                 /// merchant access.
-                rollback {
+                rollback => Rollback {
                     id: "TransRoutingConfig_Rollback",
                     method: PUT,
                     path: "/intelligentroutingrules/rollback/{audit_key}",
                     path_params: {
+                        /// The GUID of the Audit\_Trail\_T record to use as the rollback
+                        /// source.
                         audit_key: $crate::types::AuditKey = "audit_key",
                     },
-                    query: {},
-                    body: json($crate::schema::TransRoutingRuleRollbackRequest),
+                    query: [],
+                    body: [json $crate::schema::TransRoutingRuleRollbackRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get supported card types for ITR rule conditions.
@@ -2795,16 +2992,16 @@ macro_rules! operation_table {
                 /// being lists of Type strings (e.g., "CREDIT", "DEBIT"). These brand/type
                 /// combinations are the valid values for CardBrand and CardType conditions in ITR
                 /// rule configurations. Restricted to authenticated reseller users.
-                supported_card_types {
+                supported_card_types => SupportedCardTypes {
                     id: "TransRoutingConfig_GetSupportedCardTypes",
                     method: GET,
                     path: "/intelligentroutingrules/cardtype/supported",
                     path_params: {},
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Update an existing request rule.
@@ -2818,18 +3015,19 @@ macro_rules! operation_table {
                 /// LastUpdateDate, and LastUpdateUserKey fields. Records an audit trail entry of
                 /// type ITRRulesUpdated with before/after snapshots and the complete list of all request
                 /// rules. Restricted to authenticated users with reseller-authorized merchant access.
-                update_request_rule {
+                update_request_rule => UpdateRequestRule {
                     id: "TransRoutingConfig_UpdateRequestRule",
                     method: PUT,
                     path: "/intelligentroutingrules/requestrules/{rule_id}",
                     path_params: {
+                        /// The RequestRuleKey of the request rule to update.
                         rule_id: $crate::types::RuleId = "rule_id",
                     },
-                    query: {},
-                    body: json($crate::schema::TransRoutingRuleRequest),
+                    query: [],
+                    body: [json $crate::schema::TransRoutingRuleRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Update an existing response rule.
@@ -2843,18 +3041,19 @@ macro_rules! operation_table {
                 /// LastUpdateDate, and LastUpdateUserKey fields. Records an audit trail entry of
                 /// type ITRRulesUpdated with before/after snapshots and the complete list of all response
                 /// rules. Restricted to authenticated users with reseller-authorized merchant access.
-                update_response_rule {
+                update_response_rule => UpdateResponseRule {
                     id: "TransRoutingConfig_UpdateResponseRule",
                     method: PUT,
                     path: "/intelligentroutingrules/responserules/{rule_id}",
                     path_params: {
+                        /// The RequestRuleKey of the response rule to update.
                         rule_id: $crate::types::RuleId = "rule_id",
                     },
-                    query: {},
-                    body: json($crate::schema::TransRoutingRuleRequest),
+                    query: [],
+                    body: [json $crate::schema::TransRoutingRuleRequest],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
             }
@@ -2865,16 +3064,16 @@ macro_rules! operation_table {
                 /// account holder information. Performs business rule validation, merchant context checks, and
                 /// may invoke external validation services depending on merchant configuration. Supports name
                 /// validation and OFAC validation when enabled for the merchant.
-                ach_account {
+                ach_account => AchAccount {
                     id: "AchAccountValidation",
                     method: POST,
                     path: "/ach/account/validate",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::AchAccountValidateRequest),
+                    query: [],
+                    body: [json $crate::schema::AchAccountValidateRequest],
                     merchant: none,
-                    response: $crate::schema::AchAccountValidationResponse,
-                    export: false,
+                    response: json $crate::schema::AchAccountValidationResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get bank information by routing number.
@@ -2885,18 +3084,19 @@ macro_rules! operation_table {
                 /// response containing the bank name (from CustomerName), full address (street, city, state, zip,
                 /// country code "USA"), formatted telephone number, servicing FRB number, office code, data view code,
                 /// record type code, institution status code, new routing number (if reassigned), and change date.
-                bank_info {
+                bank_info => BankInfo {
                     id: "BankInformation_GetBankByRoutingNumber",
                     method: GET,
                     path: "/bank_info/{routing_number}",
                     path_params: {
+                        /// The 9-digit ABA routing number to look up. Validated by `RoutingNumberAttribute`.
                         routing_number: ::std::string::String = "routing_number",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Validate a card account.
@@ -2913,16 +3113,16 @@ macro_rules! operation_table {
                 /// and at least the last\_name field is provided in the request. Decision codes are mapped as:
                 /// "01" = Match, "50" = Partial Match, "99" = No Match. If name validation is enabled but
                 /// last name is not provided, the response will include an instructional message.
-                card_account {
+                card_account => CardAccount {
                     id: "CardAccountValidation",
                     method: POST,
                     path: "/card/account/validate",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::CardAccountValidateRequest),
+                    query: [],
+                    body: [json $crate::schema::CardAccountValidateRequest],
                     merchant: none,
-                    response: $crate::schema::CardAccountValidateResponse,
-                    export: false,
+                    response: json $crate::schema::CardAccountValidateResponse,
+                    export: [],
                     deprecated: false,
                 }
                 /// Get card information by BIN/IIN number.
@@ -2934,18 +3134,20 @@ macro_rules! operation_table {
                 /// country, bank name, brand, category, type, commercial card flag, and brand-specific product indicators
                 /// (e.g., CommercialCardLevel2DataIndicator, CommercialCardLevel3DataIndicator, LargeTicketIndicator,
                 /// ProductId for Visa cards).
-                card_info {
+                card_info => CardInfo {
                     id: "CardInformation_GetCardInformation",
                     method: GET,
                     path: "/cardinfo/{bin_number}",
                     path_params: {
+                        /// The BIN/IIN number to look up (up to 11 digits, validated by `StringLengthAttribute`).
+                        /// Can be a full or partial card number; only the leading digits are used for the BIN lookup.
                         bin_number: ::std::string::String = "bin_number",
                     },
-                    query: {},
-                    body: none,
+                    query: [],
+                    body: [],
                     merchant: none,
-                    response: $crate::types::Json,
-                    export: false,
+                    response: json $crate::types::Json,
+                    export: [],
                     deprecated: false,
                 }
                 /// Check card eligibility for Visa Direct funds transfer.
@@ -2963,16 +3165,16 @@ macro_rules! operation_table {
                 /// card brand validation against the processor profile's supported card types, and a Visa Funds
                 /// Transfer Inquiry API call. The Visa FTI response is evaluated by
                 /// IFundsTransferEligibilityChecker.GetEligibility to determine the final eligibility.
-                funds_transfer_inquiry {
+                funds_transfer_inquiry => FundsTransferInquiry {
                     id: "FundsTransferInquiry_CreateFundsTransferInquiryAsync",
                     method: POST,
                     path: "/fundstransferinquiry",
                     path_params: {},
-                    query: {},
-                    body: json($crate::schema::FundsTransferInquiryRequest),
+                    query: [],
+                    body: [json $crate::schema::FundsTransferInquiryRequest],
                     merchant: none,
-                    response: $crate::schema::FundsTransferInquiryResponse,
-                    export: false,
+                    response: json $crate::schema::FundsTransferInquiryResponse,
+                    export: [],
                     deprecated: false,
                 }
             }

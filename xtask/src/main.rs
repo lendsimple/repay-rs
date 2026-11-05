@@ -270,6 +270,8 @@ mod tests {
                 "CardTransactions_QueryExportTransactions",
                 "CardSettlementBatchClosing_CloseCardSettlementBatch",
                 "Adjustments_ProcessBulkDisbursementFundingAdjustment",
+                "AchAuthForm_GetAuthRecordById",
+                "CardTransactions_GetTransactions",
             ]
             .map(|id| operation(&model, id))
             .join("\n")

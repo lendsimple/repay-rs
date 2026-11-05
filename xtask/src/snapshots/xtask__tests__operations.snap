@@ -1,6 +1,6 @@
 ---
 source: xtask/src/main.rs
-expression: "[\"CardTransactions_ProcessSaleAsync\", \"CardTransactions_ProcessCapture\",\n\"DigitalWallet_GetMerchant\", \"CardTransactions_QueryExportTransactions\",\n\"CardSettlementBatchClosing_CloseCardSettlementBatch\",\n\"Adjustments_ProcessBulkDisbursementFundingAdjustment\",].map(|id|\noperation(&model, id)).join(\"\\n\")"
+expression: "[\"CardTransactions_ProcessSaleAsync\", \"CardTransactions_ProcessCapture\",\n\"DigitalWallet_GetMerchant\", \"CardTransactions_QueryExportTransactions\",\n\"CardSettlementBatchClosing_CloseCardSettlementBatch\",\n\"Adjustments_ProcessBulkDisbursementFundingAdjustment\",\n\"AchAuthForm_GetAuthRecordById\",\n\"CardTransactions_GetTransactions\",].map(|id|\noperation(&model, id)).join(\"\\n\")"
 ---
 OperationDef {
     id: "CardTransactions_ProcessSaleAsync",
@@ -21,7 +21,7 @@ OperationDef {
             "TransactionDetailCardResponse",
         ),
     ),
-    export: false,
+    export: None,
     deprecated: false,
     doc: Some(
         "Process a card sale transaction.\n\nProcesses a combined authorization and capture in a single step. Supports 3-D Secure\nauthentication data. Reseller users must provide the MerchantId header. Supports auto-reversal\nretry for debit cards. Returns HTTP 200 if approved or HTTP 201 otherwise.",
@@ -57,7 +57,7 @@ OperationDef {
             "TransactionDetailCardResponse",
         ),
     ),
-    export: false,
+    export: None,
     deprecated: false,
     doc: Some(
         "Capture a previously authorized card transaction.\n\nCompletes a previously authorized transaction by capturing the funds. Supports optional\namount override. Reseller users must provide the MerchantId header. Returns HTTP 200 if\napproved or HTTP 201 otherwise.",
@@ -95,7 +95,7 @@ OperationDef {
             "DigitalWalletMerchantDetailsResponse",
         ),
     ),
-    export: false,
+    export: None,
     deprecated: false,
     doc: Some(
         "Get digital wallet merchant details.\n\nRetrieves digital wallet merchant details by wallet merchant ID. Restricted to reseller users;\nreturns HTTP 403 for non-reseller users. Maps the `DigitalWalletUriRequest` to a\nMerchant model (with correlation ID) and delegates to\nIMerchantRegistration.GetMerchantAsync. The result is mapped to a\n`DigitalWalletMerchantDetailsResponse` containing the wallet merchant ID and\nServices (ApplePay enabled flag, domain names). After retrieval, checks if the merchant\nwas not found (ApplePay not enabled and no domain names configured), throwing\nItemNotFoundException in that case.",
@@ -396,7 +396,12 @@ OperationDef {
     response: Some(
         Json,
     ),
-    export: true,
+    export: Some(
+        Export {
+            kind: Format,
+            wire: "format",
+        },
+    ),
     deprecated: false,
     doc: Some(
         "Export card transactions via query string parameters.\n\nFunctionally identical to the POST query endpoint but accepts filter parameters from the\nquery string for GET-based export workflows. Enforces data retention policy. Supports JSON,\nCSV, Excel, and PDF output formats.",
@@ -421,7 +426,7 @@ OperationDef {
             "CloseCardSettlementBatchResponse",
         ),
     ),
-    export: false,
+    export: None,
     deprecated: false,
     doc: Some(
         "Queue a card settlement batch for closing.\n\nQueues a card settlement batch for closing. Supports two modes depending on the request:\n\n- By batch ID — when request.BatchId is provided, calls\nQueueClosingBatchByBatchIdAsync which validates the batch ID range, fetches the batch,\nverifies the batch belongs to the authenticated merchant, validates the batch status is \"Open\"\nvia FluentValidation, updates the status to \"Queued\", and raises a batch closing event.\n- Single batch — when request.BatchId is null, calls\nQueueClosingSingleBatchAsync which validates the merchant's feature flag enablement,\nresolves the single processor profile for the merchant, fetches the single open batch for that\nprocessor profile, validates and queues it for closing.\n\nOn success, returns HTTP 202 Accepted with a `CloseCardSettlementBatchResponse`\ncontaining the batch ID and a correlation ID (from the CloudFront request header). On validation\nfailure, the FluentValidation.Results.ValidationResult errors are added to the\nModelState and a non-success response is returned.",
@@ -440,9 +445,109 @@ OperationDef {
     response: Some(
         Json,
     ),
-    export: false,
+    export: None,
     deprecated: false,
     doc: Some(
         "Process bulk disbursement funding adjustments from a CSV file.\n\nProcesses bulk disbursement funding adjustments from a CSV file uploaded as multipart form data.\nThe CSV must contain columns: MerchantId, TransactionId, OriginalAmount, AdjustmentAmount (header row is optional).\nOnly one file is allowed per request. Each row is validated for sanity (positive amounts, adjustment <= original)\nand for duplicates. If all rows pass sanity checks, the engine validates each transaction (exists, correct type,\nmatching merchant, not fully reversed, remaining balance sufficient) before processing.\nReturns a `BulkTransactionProcessingResult` on full success, or a CSV file with per-row results\n(including error messages) on partial or full failure.",
+    ),
+}
+OperationDef {
+    id: "AchAuthForm_GetAuthRecordById",
+    resource: "ach_auth_forms",
+    method: "get",
+    http_method: "GET",
+    path: "/achauthforms/{auth_form_id}",
+    path_params: [
+        Param {
+            field: "auth_form_id",
+            wire: "auth_form_id",
+            ty: Named(
+                "AuthFormId",
+            ),
+            doc: Some(
+                "The ACH_Auth_Form_Key of the auth form to retrieve.",
+            ),
+        },
+    ],
+    query: [],
+    body: None,
+    merchant: None,
+    response: Some(
+        Json,
+    ),
+    export: Some(
+        Export {
+            kind: Pdf,
+            wire: "pdf",
+        },
+    ),
+    deprecated: false,
+    doc: Some(
+        "Get an ACH authorization form by ID.\n\nRetrieves an auth form directly by its primary key. Returns HTTP 404 if not found, or\nHTTP 403 if the user does not have access to the form's merchant. Supports PDF (default)\nor JSON output.",
+    ),
+}
+OperationDef {
+    id: "CardTransactions_GetTransactions",
+    resource: "card_transactions",
+    method: "list",
+    http_method: "GET",
+    path: "/transactions/card",
+    path_params: [],
+    query: [
+        QueryParam {
+            field: "transaction_id",
+            wire: "request.transaction_id",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The transaction identifier to filter the card transactions.",
+            ),
+        },
+        QueryParam {
+            field: "filter_param",
+            wire: "request.filter_param",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "An optional filter parameter for the query.",
+            ),
+        },
+        QueryParam {
+            field: "take",
+            wire: "request.take",
+            ty: I32,
+            multi: false,
+            doc: Some(
+                "The number of results to take (page size).",
+            ),
+        },
+        QueryParam {
+            field: "skip",
+            wire: "request.skip",
+            ty: I32,
+            multi: false,
+            doc: Some(
+                "The number of results to skip (for paging).",
+            ),
+        },
+        QueryParam {
+            field: "batch_id",
+            wire: "request.batch_id",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The batch identifier to filter the card transactions.",
+            ),
+        },
+    ],
+    body: None,
+    merchant: None,
+    response: Some(
+        Json,
+    ),
+    export: None,
+    deprecated: false,
+    doc: Some(
+        "Get card transactions.\n\nRetrieves card transactions by transaction ID (finds all transactions on the same card),\nby batch ID, or returns recent transactions for the user. Supports JSON, CSV, Excel, and\nPDF output formats.",
     ),
 }

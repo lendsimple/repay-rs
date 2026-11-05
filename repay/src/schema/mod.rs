@@ -32,16 +32,22 @@ mod tests {
         ($(
             $resource:ident {$(
                 $(#[doc = $doc:literal])*
-                $method:ident {
+                $method:ident => $name:ident {
                     id: $id:literal,
                     method: $http:ident,
                     path: $path:literal,
-                    path_params: { $($p:ident: $pty:ty = $pwire:literal,)* },
-                    query: { $($q:ident: $qty:ty = $qwire:literal $($multi:ident)?,)* },
-                    body: $body:ident $(($bty:ty))?,
+                    path_params: {$(
+                        $(#[doc = $pdoc:literal])*
+                        $p:ident: $pty:ty = $pwire:literal,
+                    )*},
+                    query: [$($params:ident {$(
+                        $(#[doc = $qdoc:literal])*
+                        $q:ident: $qty:ty = $qwire:literal $($multi:ident)?,
+                    )*})?],
+                    body: [$($body:ident $($bty:ty)?)?],
                     merchant: $merchant:ident,
-                    response: $response:ty,
-                    export: $export:literal,
+                    response: $response:ident $($rty:ty)?,
+                    export: [$($export:ident $ewire:literal)?],
                     deprecated: $deprecated:literal,
                 }
             )*}
@@ -53,7 +59,7 @@ mod tests {
             #[allow(dead_code, unused_parens, clippy::type_complexity)]
             fn types() {
                 $($(
-                    let _: Option<($($pty,)* $($qty,)* $($bty,)? $response)>;
+                    let _: Option<($($pty,)* $($($qty,)*)? $($($bty,)?)? $($rty)?)>;
                 )*)*
             }
         };

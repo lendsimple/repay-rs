@@ -207,9 +207,8 @@ pub struct OperationDef {
     pub merchant: Merchant,
     /// `None` for an empty response.
     pub response: Option<Ty>,
-    /// The operation takes a `format` parameter that switches to a CSV, Excel or
-    /// PDF download.
-    pub export: bool,
+    /// A parameter that switches the response to a file download.
+    pub export: Option<Export>,
     pub deprecated: bool,
     pub doc: Option<String>,
 }
@@ -233,6 +232,21 @@ pub struct QueryParam {
 }
 
 #[derive(Debug, PartialEq, Eq)]
+pub struct Export {
+    pub kind: ExportKind,
+    /// The parameter's wire name.
+    pub wire: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ExportKind {
+    /// `format=csv|excel|pdf`; JSON when left out.
+    Format,
+    /// `pdf=true|false`; the API's default is `true`, a PDF.
+    Pdf,
+}
+
+#[derive(Debug, PartialEq, Eq)]
 pub enum Body {
     None,
     Json(Ty),
@@ -246,8 +260,9 @@ pub enum Merchant {
     Required,
 }
 
-/// The parameter that switches a report to a download.
-const FORMAT_PARAMS: &[&str] = &["format", "request.format"];
+/// Parameters that switch a response to a download.
+const EXPORT_PARAMS: &[(&str, ExportKind)] =
+    &[("format", ExportKind::Format), ("pdf", ExportKind::Pdf)];
 /// Headers every operation declares, which the client sends from its credentials.
 const AUTH_HEADERS: &[&str] = &["rg-api-user", "rg-api-secure-token"];
 const MERCHANT_HEADER: &str = "rg-merchant-id";
@@ -614,7 +629,7 @@ impl<'a> Builder<'a> {
             },
             merchant: Merchant::None,
             response: self.response(op)?,
-            export: false,
+            export: None,
             deprecated: op.deprecated,
             doc: operation_doc(op),
         };
@@ -642,8 +657,14 @@ impl<'a> Builder<'a> {
                 Location::Query if ov.drop_query.contains(&param.name) => {
                     dropped.insert(param.name.as_str());
                 }
-                Location::Query if FORMAT_PARAMS.contains(&param.name.as_str()) => {
-                    def.export = true;
+                Location::Query
+                    if let Some((_, kind)) =
+                        EXPORT_PARAMS.iter().find(|(name, _)| *name == param.name) =>
+                {
+                    def.export = Some(Export {
+                        kind: *kind,
+                        wire: param.name.clone(),
+                    });
                 }
                 Location::Query => {
                     let multi = param.collection_format.as_deref() == Some("multi");
@@ -699,6 +720,14 @@ impl<'a> Builder<'a> {
         }
         if def.path.matches('{').count() != def.path_params.len() {
             return Err(format!("{id}: the path has undeclared parameters"));
+        }
+        let mut fields = BTreeSet::new();
+        let names = def.path_params.iter().map(|p| &p.field);
+        if let Some(dup) = names
+            .chain(def.query.iter().map(|q| &q.field))
+            .find(|f| !fields.insert(*f))
+        {
+            return Err(format!("{id}: two parameters are named {dup}"));
         }
         Ok(def)
     }
@@ -1077,7 +1106,13 @@ mod tests {
         assert_eq!(op.query[0].field, "start_date");
         assert_eq!(op.query[0].wire, "query.start_date");
         assert_eq!(op.query.len(), 1);
-        assert!(op.export);
+        assert_eq!(
+            op.export,
+            Some(Export {
+                kind: ExportKind::Format,
+                wire: "format".into()
+            })
+        );
         assert_eq!(op.merchant, Merchant::Optional);
         assert_eq!(op.body, Body::Json(Ty::Named("ThingRequest".into())));
         assert_eq!(op.response, Some(Ty::Named("Thing".into())));

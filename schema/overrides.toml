@@ -279,7 +279,9 @@ CardTransactions_BulkProcessReversal = { resource = "card_transactions", method 
 CardTransactions_EmailTransactionReceipt = { resource = "card_transactions", method = "email_receipt" }
 CardTransactions_GetItrProfileWarningContextInfo = { resource = "card_transactions", method = "itr_profile_warning" }
 CardTransactions_GetTransactionById = { resource = "card_transactions", method = "get" }
-CardTransactions_GetTransactions = { resource = "card_transactions", method = "list" }
+# `request.format` is the response's media type ("JSON, XML"), not an export; the
+# client always asks for JSON.
+CardTransactions_GetTransactions = { resource = "card_transactions", method = "list", drop_query = ["request.format"] }
 CardTransactions_QueryTransactions = { resource = "card_transactions", method = "query" }
 CardTransactions_QueryExportTransactions = { resource = "card_transactions", method = "search" }
 CardTransactions_LimitedQueryTransaction = { resource = "card_transactions", method = "limited_query" }
