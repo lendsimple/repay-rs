@@ -31,3 +31,11 @@ the crates follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Requests have builders and check the spec's constraints; responses accept
   `null` for any field and ignore fields they do not know. Enums keep values they
   do not list in `Other`.
+- `operations`: a type for every API operation (`card_transactions::Capture`,
+  ...), with query parameter builders, and `Export` for reports returned as CSV,
+  Excel or PDF.
+- `protocol::encode` and `protocol::decode`, which turn an operation into an HTTP
+  request and read the response without doing any I/O, so any HTTP client can
+  send requests.
+- `Credentials`, `Environment`, and `Error` with `ApiError` for the API's error
+  responses.

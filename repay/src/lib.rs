@@ -1,7 +1,11 @@
 //! A typed client for the Repay Gateway API (Repay Online).
 //!
-//! This release provides the API's types:
+//! This release provides the API's types and a protocol layer without I/O:
 //!
+//! - [`operations`]: a type for every operation, such as
+//!   [`card_transactions::Capture`](operations::card_transactions::Capture).
+//! - [`protocol`]: [`encode`](protocol::encode) an operation as an HTTP request,
+//!   send it with any HTTP client, and [`decode`](protocol::decode) the response.
 //! - [`schema`]: every request and response type, generated from the vendored
 //!   Swagger specs. Requests have builders.
 //! - [`types`]: exact money amounts, the API's dates and times, card expiration

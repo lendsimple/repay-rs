@@ -414,12 +414,50 @@ let page: Json = client.ach_reporting().query(&AchTransactionQuery::builder()
 - Query: `query.custom_fields` multi, and the wallet-id duplicate dropped.
 - `Accept` is always sent.
 
-**Status**: Not Started
+**Status**: Complete
+
+**Notes (as built)**:
+- **Merchant ID (decided with the user):** a merchant ID configured in the `Context` is sent as `rg-merchant-id` on *every* request. Many operations that don't declare the header say resellers must send it. `MerchantHeader::Required` operations (the batch close) fail validation with `rg-merchant-id: is required` when none is set.
+- **Moved to Stage 4:** `resource_handles!`, `Config` with its builder, and tracing. `protocol::Context` holds the credentials, environment, API version (default `"1"`), merchant ID and user agent; Stage 4's `Config` wraps it.
+- **Table format, revised:**
+  - Optional parts are `[...]` lists of zero or one item, so `macro_rules` matches them with `$(...)?`.
+  - Entries are `method => Name { … }`, with docs on the path and query parameters.
+  - The keys are `query: [NameParams {…}]`, `body: [json T]` / `[multipart]` / `[]`, `response: json T` / `empty` / `download`, `export: [format "format"]` / `[pdf "pdf"]` / `[]`, and `deprecated: true|false` (matched as `tt`).
+- **Operations (`repay::operations`):** `impl_operations!` generates a module per resource.
+  - Each operation gets a type, such as `card_transactions::Capture<'a>`:
+    - path params are owned;
+    - the body and the query params are borrowed;
+    - there is a `PhantomData` marker;
+    - `new(path params: impl Into<T>…, &body?, &params?)`.
+  - Each set of query parameters gets a `NameParams` struct (bon builder, `Default`, every field `Option`; `multi` lists are `Option<Vec<T>>`, sent as repeated keys).
+  - Deprecated operations get `#[deprecated]` on `new`.
+- **`Operation` trait:**
+  - `Response`, `ID`, `NAME` (`card_transactions.sale`), `METHOD`, `MERCHANT`, and hidden `EXPORT`/`ACCEPT`;
+  - hidden `path`/`params`/`query`/`body`/`decode`;
+  - public `validate`, which checks the body and that path segments are non-empty.
+- **No `PathWriter` type:** `query::render_path` fills in the template placeholders and percent-encodes each value as one segment.
+- **Exports:** `Export::new(&op, ExportFormat)` for `Exportable` operations. It adds `format=csv|excel|pdf`, sends `Accept: */*`, and returns `Download`.
+  - **PDF flag:** the two ACH auth-form GETs default to a PDF, so their plain operation sends `pdf=false`, and their `Export` sends `pdf=true` (the format is ignored).
+  - **`request.format`:** dropped from `CardTransactions_GetTransactions` (it selects XML).
+  - **Bulk template:** `adjustments.bulk_template` is a `download` by override.
+- **Multipart:** implemented here rather than in Stage 5: one `file` part, with a deterministic boundary `repay-boundary` that is lengthened on collision. `types::Upload` is its input.
+- **Decoding:**
+  - Any 2xx (including the 201 decline and the 202 batch close) is a success.
+  - JSON operations accept `application/json`, `text/json`, `+json`, or a missing Content-Type; an empty body reads as `null`.
+  - Non-2xx with a JSON `ErrorResponse` carrying a message or validation errors becomes `Error::Api`; anything else becomes `Error::Status`.
+  - Error bodies are truncated to 4 KiB.
+  - A `Download`'s filename comes from Content-Disposition (`filename*` preferred).
+- **`Error` variants:** `Api`, `Validation`, `Encode`, `Decode { source, status, body }`, `UnexpectedContentType`, `Status`, `Transport`.
+- **Tests:**
+  - insta request snapshots (`repay/tests/requests.rs`, 30 operations) instead of JSON files;
+  - response fixtures in `repay/tests/data/responses/`.
+  - The CSV failure report fixture moves to Stage 5, with the bulk outcome type.
 
 ## Stage 4: Async + blocking clients, transports, wasm
 **Goal**:
 - `Transport` traits, `ReqwestTransport`, `UreqTransport`.
-- `Client` and `blocking::Client` with builders, `Credentials`, `Environment`, tracing and redaction.
+- `Client` and `blocking::Client` with builders (a `Config` wrapping `protocol::Context`, plus timeout and `validate_requests`), tracing and redaction (`SENSITIVE_FIELDS` in JSON bodies).
+- `resource_handles!`, consuming `operation_table!`: `client.card_transactions().capture(id, &body)`, `*_export` siblings for `Exportable` operations, `client.execute(&op)`, and `client.with_merchant_id(..)` for a per-call merchant.
 
 **Success Criteria**:
 - The mockito suites pass for both clients.
@@ -437,8 +475,7 @@ let page: Json = client.ach_reporting().query(&AchTransactionQuery::builder()
 
 ## Stage 5: Bulk, exports, ergonomics, sandbox
 **Goal**:
-- Multipart encoder; `BulkAdjustment` CSV builder; `BulkOutcome`.
-- The template download; `*_export` methods; PDF flags for auth forms.
+- `BulkAdjustment` CSV builder (producing a `types::Upload`); `BulkOutcome` (JSON success or CSV failure report). The multipart encoder, template download, exports and auth-form PDF flag were done in Stage 3.
 - Source enums and shortcuts in `ext.rs`; paging helpers.
 - `#[ignore]`d sandbox tests.
 - Examples: `card_sale`, `card_sale_blocking`, `ach_sale`, `card_tokens`, `customers`, `bulk_adjustment`.
@@ -490,6 +527,6 @@ let page: Json = client.ach_reporting().query(&AchTransactionQuery::builder()
 - The multipart form field name for the CSV file (we assume `file`), and the exact CSV report columns.
 - The real shape of `BulkTransactionProcessingResult` (kept as `Json` for now).
 - The `date-time` format the server accepts in query parameters (we assume RFC 3339 / ISO 8601 without an offset).
-- `rg-merchant-id`: only 13 operations declare it, but many descriptions say "Reseller users must provide the MerchantId header" (card sale, capture, …). Stage 3 should probably send the configured merchant ID on every request, not only where the table says `optional`/`required`.
+- Exports send `Accept: */*`; confirm the server honours `format` with that, and which formats each report supports.
 - Declines: several descriptions say "Returns HTTP 200 if approved or HTTP 201 otherwise", so a 201 with a transaction body likely means declined.
 - Later: typing the ~73 `Json` responses (card/ACH tokens, customers, contracts, query pages) from captured fixtures, without breaking changes (we add `*_typed` methods or switch in 0.x).
