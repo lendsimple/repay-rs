@@ -47,3 +47,11 @@ ureq = ["dep:ureq"]
 rustls = ["reqwest?/rustls", "ureq?/rustls"]
 ## TLS with the platform's native library.
 native-tls = ["reqwest?/native-tls", "ureq?/native-tls"]
+
+[[example]]
+name = "card_sale"
+required-features = ["reqwest"]
+
+[[example]]
+name = "card_sale_blocking"
+required-features = ["ureq"]

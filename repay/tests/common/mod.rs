@@ -76,6 +76,11 @@ impl Answer {
         }
     }
 
+    pub fn status(mut self, status: usize) -> Self {
+        self.status = status;
+        self
+    }
+
     pub fn delayed(mut self, delay: std::time::Duration) -> Self {
         self.delay = delay;
         self
@@ -202,4 +207,116 @@ impl std::io::Write for LogCapture {
     fn flush(&mut self) -> std::io::Result<()> {
         Ok(())
     }
+}
+
+// Requests for the client cases.
+
+use repay::dec;
+use repay::schema::{
+    CardCaptureRequest, CardSaleRequest, CardTransactionsByDateQuery,
+    CloseCardSettlementBatchRequest,
+};
+use repay::types::{Amount, DateTime, ExpDate};
+
+pub fn card_sale() -> CardSaleRequest {
+    CardSaleRequest::builder()
+        .amount(Amount::from(dec!(19.99)))
+        .card_number("4111111111111111")
+        .exp_date(ExpDate::new(12, 2030).unwrap())
+        .cvv("987")
+        .build()
+}
+
+pub fn capture() -> CardCaptureRequest {
+    CardCaptureRequest::builder()
+        .amount(Amount::from(dec!(10)))
+        .build()
+}
+
+pub fn by_date() -> CardTransactionsByDateQuery {
+    CardTransactionsByDateQuery::builder()
+        .start_date(DateTime::parse("2026-11-01").unwrap())
+        .end_date(DateTime::parse("2026-11-04").unwrap())
+        .build()
+}
+
+pub fn batch() -> CloseCardSettlementBatchRequest {
+    CloseCardSettlementBatchRequest::builder()
+        .batch_id(3)
+        .build()
+}
+
+/// The merchant every client in the case suites acts for.
+pub const MERCHANT_ID: i32 = 1234;
+
+/// Invokes `$callback!` with one case per kind of operation:
+/// `name: resource.method(args) => METHOD "path?query", answer;`. Both client
+/// suites run every case.
+macro_rules! client_cases {
+    ($callback:ident) => {
+        $callback! {
+            card_sale: card_transactions.sale(&common::card_sale())
+                => "POST" "/rgapi/v1/transactions/card/sale",
+                Answer::json(200, fixture("transaction_detail_card_response.json"));
+            card_sale_declined_with_201: card_transactions.sale(&common::card_sale())
+                => "POST" "/rgapi/v1/transactions/card/sale",
+                Answer::json(201, r#"{"result_text": "DECLINED"}"#);
+            card_capture: card_transactions.capture(42, &common::capture())
+                => "POST" "/rgapi/v1/transactions/card/42/capture",
+                Answer::json(200, fixture("transaction_detail_card_response.json"));
+            ach_void: ach_transactions.void("ACH-1")
+                => "POST" "/rgapi/v1/transactions/ach/ACH-1/void",
+                Answer::json(200, "{}");
+            wallet_merchant: digital_wallet.get_merchant(
+                "merchant-1",
+                &repay::operations::digital_wallet::GetMerchantParams::builder()
+                    .use_test_keys(true)
+                    .build()
+            ) => "GET" "/rgapi/v1/digitalwallet/merchants/merchant-1?request.use_test_keys=true",
+                Answer::json(200, r#"{"wallet_merchant_id": "merchant-1"}"#);
+            card_search: card_transactions.search(
+                &repay::operations::card_transactions::SearchParams::builder()
+                    .take(5)
+                    .custom_fields(vec!["a".into(), "b".into()])
+                    .build()
+            ) => "GET" "/rgapi/v1/transactions/card/query/export?take=5&query.custom_fields=a&query.custom_fields=b",
+                Answer::json(200, "[]");
+            card_search_export: card_transactions.search_export(
+                &repay::operations::card_transactions::SearchParams::default(),
+                repay::ExportFormat::Csv
+            ) => "GET" "/rgapi/v1/transactions/card/query/export?format=csv",
+                Answer::file("text/csv", "transaction_id\n42\n");
+            query_by_date: card_transactions.query_by_date(
+                repay::schema::ReportType::SalesByDate,
+                &common::by_date(),
+                &Default::default()
+            ) => "POST" "/rgapi/v1/transactions/card/query/SalesByDate",
+                Answer::json(200, "[]");
+            auth_form_json: ach_auth_forms.get(31)
+                => "GET" "/rgapi/v1/achauthforms/31?pdf=false",
+                Answer::json(200, "{}");
+            auth_form_pdf: ach_auth_forms.get_pdf(31)
+                => "GET" "/rgapi/v1/achauthforms/31?pdf=true",
+                Answer::file("application/pdf", "%PDF-1.7");
+            template_delete: fraud_velocity.delete("tmpl-1")
+                => "DELETE" "/rgapi/v1/fraudvelocity/template/tmpl-1",
+                Answer::json(204, "");
+            batch_close: batches.close_card(&common::batch())
+                => "POST" "/rgapi/v1/openbatches/card",
+                Answer::json(202, fixture("close_card_settlement_batch_response.json"));
+            bulk_reversal: card_transactions.bulk_reversal(
+                &repay::types::Upload::csv("reversals.csv", "TransactionId\n1001\n")
+            ) => "POST" "/rgapi/v1/transactions/card/reversal/bulk",
+                Answer::json(200, "{}");
+            bulk_template: adjustments.bulk_template()
+                => "GET" "/rgapi/v1/adjustments/disbursementfunding/bulk/template",
+                Answer::file("text/csv", "MerchantId,TransactionId\n");
+            custom_fields: custom_fields.list()
+                => "GET" "/rgapi/v1/customfields",
+                Answer::json(200, r#"[{"custom_field_id": 1}]"#);
+            health: health.check()
+                => "GET" "/rgapi/v1/health",
+                Answer::json(200, r#""Healthy""#);
+        }
+    };
 }
