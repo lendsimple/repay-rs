@@ -24,8 +24,7 @@ with async and blocking clients, for native targets and WebAssembly.
 repay-gateway = "0.1"
 ```
 
-The library is imported as `repay` (the package name `repay` was already taken on
-crates.io): `use repay::Client;`.
+The library is imported as `repay`: `use repay::Client;`.
 
 | Feature | Default | |
 |---|---|---|
