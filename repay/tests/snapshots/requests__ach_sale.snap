@@ -1,0 +1,15 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&ach_transactions::Sale::new(&body), &context())"
+---
+POST https://api.sandbox.repayonline.com/rgapi/v1/transactions/ach/sale
+accept: application/json
+content-type: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test
+
+{
+  "ach_token": "tok_ach",
+  "amount": 100.0
+}

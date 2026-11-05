@@ -21,6 +21,7 @@ OperationDef {
             "TransactionDetailCardResponse",
         ),
     ),
+    download: false,
     export: None,
     deprecated: false,
     doc: Some(
@@ -57,6 +58,7 @@ OperationDef {
             "TransactionDetailCardResponse",
         ),
     ),
+    download: false,
     export: None,
     deprecated: false,
     doc: Some(
@@ -95,6 +97,7 @@ OperationDef {
             "DigitalWalletMerchantDetailsResponse",
         ),
     ),
+    download: false,
     export: None,
     deprecated: false,
     doc: Some(
@@ -396,6 +399,7 @@ OperationDef {
     response: Some(
         Json,
     ),
+    download: false,
     export: Some(
         Export {
             kind: Format,
@@ -426,6 +430,7 @@ OperationDef {
             "CloseCardSettlementBatchResponse",
         ),
     ),
+    download: false,
     export: None,
     deprecated: false,
     doc: Some(
@@ -445,6 +450,7 @@ OperationDef {
     response: Some(
         Json,
     ),
+    download: false,
     export: None,
     deprecated: false,
     doc: Some(
@@ -475,6 +481,7 @@ OperationDef {
     response: Some(
         Json,
     ),
+    download: false,
     export: Some(
         Export {
             kind: Pdf,
@@ -545,6 +552,7 @@ OperationDef {
     response: Some(
         Json,
     ),
+    download: false,
     export: None,
     deprecated: false,
     doc: Some(

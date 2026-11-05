@@ -38,7 +38,7 @@ macro_rules! impl_operations {
             $(
                 #[doc = concat!("Query parameters of [`", stringify!($name), "`].")]
                 #[derive(Clone, Debug, Default, PartialEq, ::bon::Builder)]
-                #[builder(on(String, into))]
+                #[builder(on(::std::string::String, into))]
                 #[non_exhaustive]
                 pub struct $params {$(
                     $(#[doc = $qdoc])*
@@ -93,6 +93,7 @@ macro_rules! impl_operations {
                     $crate::operations::impl_operations!(@merchant $merchant);
                 const EXPORT: ::core::option::Option<$crate::operation::ExportParam> =
                     $crate::operations::impl_operations!(@export $($export $ewire)?);
+                $crate::operations::impl_operations!(@accept $response);
 
                 fn path(&self) -> ::std::string::String {
                     $crate::query::render_path($path, &[$(($pwire, &self.$p),)*])
@@ -139,6 +140,10 @@ macro_rules! impl_operations {
 
     (@response_ty json $ty:ty) => { $ty };
     (@response_ty empty) => { () };
+    (@response_ty download) => { $crate::types::Download };
+
+    (@accept download) => { const ACCEPT: &'static str = "*/*"; };
+    (@accept $json_or_empty:ident) => {};
 
     (@method GET) => { $crate::transport::Method::Get };
     (@method POST) => { $crate::transport::Method::Post };
@@ -175,6 +180,9 @@ macro_rules! impl_operations {
     };
 
     (@decode $response:ident json) => { $crate::protocol::decode_json($response) };
+    (@decode $response:ident download) => {
+        ::core::result::Result::Ok($crate::protocol::decode_download($response))
+    };
     (@decode $response:ident empty) => {{
         let _ = $response;
         ::core::result::Result::Ok(())

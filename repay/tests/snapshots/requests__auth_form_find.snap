@@ -1,0 +1,9 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&ach_auth_forms::Find::new(&params), &context())"
+---
+GET https://api.sandbox.repayonline.com/rgapi/v1/achauthforms?transaction_id=42&pdf=false
+accept: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test

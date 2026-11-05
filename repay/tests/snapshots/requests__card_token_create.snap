@@ -1,0 +1,16 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&card_tokens::Create::new(&body), &context())"
+---
+POST https://api.sandbox.repayonline.com/rgapi/v1/cardtokens
+accept: application/json
+content-type: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test
+
+{
+  "card_number": "4111111111111111",
+  "exp_date": "0131",
+  "name_on_card": "Ann Smith"
+}

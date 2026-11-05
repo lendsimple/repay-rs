@@ -1,0 +1,9 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&card_transactions::Search::new(&params), &context())"
+---
+GET https://api.sandbox.repayonline.com/rgapi/v1/transactions/card/query/export?take=50&query.card_holder=Ann%20%26%20Bob&query.custom_fields=loan%3DL-1&query.custom_fields=branch%3D7&query.start_date=2026-11-01T00%3A00%3A00&query.end_date=2026-11-04T23%3A59%3A59
+accept: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test

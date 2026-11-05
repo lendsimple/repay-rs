@@ -1,0 +1,9 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&digital_wallet::GetMerchant::new(\"merchant one\", &params), &context())"
+---
+GET https://api.sandbox.repayonline.com/rgapi/v1/digitalwallet/merchants/merchant%20one?request.use_test_keys=true
+accept: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test

@@ -1,0 +1,15 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&card_transactions::QueryByDate::new(ReportType::SalesByDate, &body,\n&params), &context())"
+---
+POST https://api.sandbox.repayonline.com/rgapi/v1/transactions/card/query/SalesByDate
+accept: application/json
+content-type: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test
+
+{
+  "end_date": "2026-11-04",
+  "start_date": "2026-11-01"
+}

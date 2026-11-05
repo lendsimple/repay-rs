@@ -1,0 +1,14 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&card_transactions::Capture::new(987654, &body), &context())"
+---
+POST https://api.sandbox.repayonline.com/rgapi/v1/transactions/card/987654/capture
+accept: application/json
+content-type: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test
+
+{
+  "amount": 10.0
+}

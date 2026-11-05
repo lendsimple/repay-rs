@@ -1,0 +1,17 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&contracts::Create::new(5, &body), &context())"
+---
+POST https://api.sandbox.repayonline.com/rgapi/v1/customers/5/contracts
+accept: application/json
+content-type: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test
+
+{
+  "billing_interval": 1,
+  "billing_period": "Monthly",
+  "customer_receipt": 1,
+  "subtotal": 25.0
+}

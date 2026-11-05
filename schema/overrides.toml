@@ -439,4 +439,5 @@ Adjustments_ProcessDisbursementFundingAdjustment = { resource = "adjustments", m
 Adjustments_ProcessDisbursementFundingReversal = { resource = "adjustments", method = "disbursement_funding_reversal" }
 # A CSV upload; the spec declares no parameter for the file.
 Adjustments_ProcessBulkDisbursementFundingAdjustment = { resource = "adjustments", method = "bulk_disbursement_funding", multipart = true }
-Adjustments_GetBulkDisbursementFundingAdjustmentTemplate = { resource = "adjustments", method = "bulk_template" }
+# Returns the CSV template, though the spec declares an untyped JSON object.
+Adjustments_GetBulkDisbursementFundingAdjustmentTemplate = { resource = "adjustments", method = "bulk_template", download = true }

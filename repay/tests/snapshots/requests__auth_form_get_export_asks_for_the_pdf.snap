@@ -1,0 +1,9 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&Export::new(&get, ExportFormat::Pdf), &context())"
+---
+GET https://api.sandbox.repayonline.com/rgapi/v1/achauthforms/31?pdf=true
+accept: */*
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test

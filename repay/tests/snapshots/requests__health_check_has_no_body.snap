@@ -1,0 +1,9 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&health::Check::new(), &context())"
+---
+GET https://api.sandbox.repayonline.com/rgapi/v1/health
+accept: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test

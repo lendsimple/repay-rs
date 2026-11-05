@@ -35,6 +35,10 @@ pub trait Operation {
     #[doc(hidden)]
     const EXPORT: Option<ExportParam>;
 
+    /// The `Accept` header: JSON, or anything for operations that return files.
+    #[doc(hidden)]
+    const ACCEPT: &'static str = "application/json";
+
     /// The path after the version, such as `/transactions/card/42/capture`.
     #[doc(hidden)]
     fn path(&self) -> String;
@@ -156,6 +160,7 @@ impl<O: Exportable> Operation for Export<'_, O> {
     const METHOD: Method = O::METHOD;
     const MERCHANT: MerchantHeader = O::MERCHANT;
     const EXPORT: Option<ExportParam> = O::EXPORT;
+    const ACCEPT: &'static str = "*/*";
 
     fn path(&self) -> String {
         self.op.path()

@@ -658,7 +658,7 @@ macro_rules! operation_table {
                     query: [],
                     body: [],
                     merchant: none,
-                    response: json $crate::types::Json,
+                    response: download,
                     export: [],
                     deprecated: false,
                 }

@@ -163,7 +163,7 @@ pub fn encode_unvalidated<O: Operation>(op: &O, context: &Context) -> Result<Htt
     }
 
     let mut headers = vec![
-        ("accept", "application/json".to_owned()),
+        ("accept", O::ACCEPT.to_owned()),
         ("rg-api-user", context.credentials.api_user().to_owned()),
         (
             "rg-api-secure-token",

@@ -1,0 +1,9 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&ach_transactions::Void::new(\"ACH-55\"), &context())"
+---
+POST https://api.sandbox.repayonline.com/rgapi/v1/transactions/ach/ACH-55/void
+accept: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test

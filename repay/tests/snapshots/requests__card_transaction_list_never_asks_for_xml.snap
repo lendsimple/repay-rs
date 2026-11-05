@@ -1,0 +1,9 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&card_transactions::List::new(&params), &context())"
+---
+GET https://api.sandbox.repayonline.com/rgapi/v1/transactions/card?request.transaction_id=42&request.take=5
+accept: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test

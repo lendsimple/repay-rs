@@ -82,6 +82,9 @@ pub struct OperationOverride {
     /// Query parameters to leave out (wire names).
     #[serde(default)]
     pub drop_query: Vec<String>,
+    /// The response is a file, though the spec declares JSON.
+    #[serde(default)]
+    pub download: bool,
 }
 
 /// A Rust type for a value.
@@ -207,6 +210,8 @@ pub struct OperationDef {
     pub merchant: Merchant,
     /// `None` for an empty response.
     pub response: Option<Ty>,
+    /// The response is always a file.
+    pub download: bool,
     /// A parameter that switches the response to a file download.
     pub export: Option<Export>,
     pub deprecated: bool,
@@ -629,6 +634,7 @@ impl<'a> Builder<'a> {
             },
             merchant: Merchant::None,
             response: self.response(op)?,
+            download: ov.download,
             export: None,
             deprecated: op.deprecated,
             doc: operation_doc(op),
@@ -657,16 +663,16 @@ impl<'a> Builder<'a> {
                 Location::Query if ov.drop_query.contains(&param.name) => {
                     dropped.insert(param.name.as_str());
                 }
-                Location::Query
-                    if let Some((_, kind)) =
-                        EXPORT_PARAMS.iter().find(|(name, _)| *name == param.name) =>
-                {
-                    def.export = Some(Export {
-                        kind: *kind,
-                        wire: param.name.clone(),
-                    });
-                }
                 Location::Query => {
+                    if let Some((_, kind)) =
+                        EXPORT_PARAMS.iter().find(|(name, _)| *name == param.name)
+                    {
+                        def.export = Some(Export {
+                            kind: *kind,
+                            wire: param.name.clone(),
+                        });
+                        continue;
+                    }
                     let multi = param.collection_format.as_deref() == Some("multi");
                     if let Some(format) = param.collection_format.as_deref().filter(|_| !multi) {
                         return Err(format!("{context}: unsupported collectionFormat {format}"));

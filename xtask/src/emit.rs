@@ -408,6 +408,7 @@ fn operation(out: &mut String, op: &OperationDef) {
     };
     key(out, "merchant", merchant);
     let response = match &op.response {
+        _ if op.download => "download".to_owned(),
         Some(ty) => format!("json {}", qualified_type(ty)),
         None => "empty".to_owned(),
     };

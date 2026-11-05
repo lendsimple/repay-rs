@@ -1,0 +1,15 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&validation::CardAccount::new(&body), &context())"
+---
+POST https://api.sandbox.repayonline.com/rgapi/v1/card/account/validate
+accept: application/json
+content-type: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test
+
+{
+  "exp_date": "1230",
+  "primary_account_number": "4111111111111111"
+}

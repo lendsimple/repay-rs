@@ -1,0 +1,14 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&routing_rules::Rollback::new(\"8a0e0b2c-1d1f-4c55-9a43-2b2d1a8f0c11\",\n&body), &context())"
+---
+PUT https://api.sandbox.repayonline.com/rgapi/v1/intelligentroutingrules/rollback/8a0e0b2c-1d1f-4c55-9a43-2b2d1a8f0c11
+accept: application/json
+content-type: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test
+
+{
+  "state_after_changes": false
+}

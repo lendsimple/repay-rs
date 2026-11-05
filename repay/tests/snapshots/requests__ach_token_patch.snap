@@ -1,0 +1,14 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&ach_tokens::Patch::new(77, &body), &context())"
+---
+PATCH https://api.sandbox.repayonline.com/rgapi/v1/achtokens/77
+accept: application/json
+content-type: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test
+
+{
+  "name_on_check": "Ann Smith"
+}

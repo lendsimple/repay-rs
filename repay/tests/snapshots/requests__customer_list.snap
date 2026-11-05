@@ -1,0 +1,10 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&customers::List::new(), &reseller())"
+---
+GET https://api.sandbox.repayonline.com/rgapi/v1/customers
+accept: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+rg-merchant-id: 1234
+user-agent: repay-rs/test

@@ -1,0 +1,15 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&adjustments::DisbursementFunding::new(1001, &body), &context())"
+---
+POST https://api.sandbox.repayonline.com/rgapi/v1/adjustments/disbursementfunding/1001
+accept: application/json
+content-type: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test
+
+{
+  "adjustment_amount": -2.5,
+  "original_amount": 10.0
+}

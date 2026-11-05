@@ -1,0 +1,9 @@
+{
+  "message": "The request is invalid.",
+  "status_code": "BadRequest",
+  "validation_errors": [
+    {"property": "amount", "message": "The Amount field is required.", "custom_field": false, "error_code": "Required"},
+    {"property": "zip", "message": "The field Zip must be a string with a maximum length of 10.", "custom_field": false, "error_code": null}
+  ],
+  "customer_ids": null
+}

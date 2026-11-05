@@ -1,0 +1,14 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&onboarding::CreateEcashMerchant::new(\"org-9\", &body), &context())"
+---
+POST https://api.sandbox.repayonline.com/rgapi/v1/paymentservicesonboarding/ecash/create/org-9
+accept: application/json
+content-type: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test
+
+{
+  "dba_name": "Example"
+}

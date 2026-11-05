@@ -65,7 +65,7 @@ fn a_request_checks_the_spec_constraints() {
 
 #[test]
 fn a_response_tolerates_nulls_and_unknown_fields() {
-    let json = include_str!("data/transaction_detail_card_response.json");
+    let json = include_str!("data/responses/transaction_detail_card_response.json");
     let response: TransactionDetailCardResponse = serde_json::from_str(json).unwrap();
     assert_eq!(response.transaction_id, Some(TransactionId::new(123456)));
     assert_eq!(response.merchant_id, Some(MerchantId::new(1234)));

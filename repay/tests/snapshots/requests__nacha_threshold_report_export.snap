@@ -1,0 +1,9 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&Export::new(&report, ExportFormat::Csv), &context())"
+---
+GET https://api.sandbox.repayonline.com/rgapi/v1/transactions/ach/nachathresholdreport?format=csv
+accept: */*
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test

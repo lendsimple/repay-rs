@@ -1,0 +1,15 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&digital_wallet_transactions::ApplePaySale::new(&body), &context())"
+---
+POST https://api.sandbox.repayonline.com/rgapi/v1/transactions/applepay/sale
+accept: application/json
+content-type: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test
+
+{
+  "authentication_payment_token": "payment-token",
+  "wallet_merchant_id": "merchant-example"
+}

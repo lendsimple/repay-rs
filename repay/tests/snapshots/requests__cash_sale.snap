@@ -1,0 +1,15 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&cash_transactions::Sale::new(&body), &reseller())"
+---
+POST https://api.sandbox.repayonline.com/rgapi/v1/transactions/cash/sale
+accept: application/json
+content-type: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+rg-merchant-id: 1234
+user-agent: repay-rs/test
+
+{
+  "amount": 5.0
+}

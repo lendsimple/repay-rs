@@ -1,0 +1,15 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&fraud_velocity::AddMerchants::new(\"tmpl-1\", &merchants), &context())"
+---
+PUT https://api.sandbox.repayonline.com/rgapi/v1/fraudvelocity/template/tmpl-1/merchants/add
+accept: application/json
+content-type: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test
+
+[
+  11,
+  12
+]

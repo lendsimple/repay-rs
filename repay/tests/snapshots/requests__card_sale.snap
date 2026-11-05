@@ -1,0 +1,20 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&card_transactions::Sale::new(&body), &reseller())"
+---
+POST https://api.sandbox.repayonline.com/rgapi/v1/transactions/card/sale
+accept: application/json
+content-type: application/json
+rg-api-secure-token: <token>
+rg-api-user: api-user
+rg-merchant-id: 1234
+user-agent: repay-rs/test
+
+{
+  "amount": 19.99,
+  "card_number": "4111111111111111",
+  "cvv": "123",
+  "exp_date": "1230",
+  "invoice_id": "INV-1",
+  "surcharge": "0.50"
+}
