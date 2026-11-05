@@ -321,7 +321,8 @@ fn operations(operations: &[OperationDef]) -> String {
     let mut resources: Vec<&str> = operations.iter().map(|o| o.resource.as_str()).collect();
     resources.dedup();
     for resource in resources {
-        writeln!(out, "            {resource} {{").unwrap();
+        let handle = resource.to_upper_camel_case();
+        writeln!(out, "            {resource} => {handle} {{").unwrap();
         for op in operations.iter().filter(|o| o.resource == resource) {
             operation(&mut out, op);
         }
@@ -416,11 +417,12 @@ fn operation(out: &mut String, op: &OperationDef) {
     let export = match &op.export {
         None => "[]".to_owned(),
         Some(Export { kind, wire }) => {
-            let kind = match kind {
-                ExportKind::Format => "format",
-                ExportKind::Pdf => "pdf",
+            // The name of the client method that returns the file.
+            let (kind, method) = match kind {
+                ExportKind::Format => ("format", format!("{}_export", op.method)),
+                ExportKind::Pdf => ("pdf", format!("{}_pdf", op.method)),
             };
-            format!("[{kind} {wire:?}]")
+            format!("[{kind} {wire:?} {method}]")
         }
     };
     key(out, "export", &export);

@@ -30,7 +30,7 @@ mod tests {
     /// wrong name fails to compile.
     macro_rules! list_operations {
         ($(
-            $resource:ident {$(
+            $resource:ident => $handle:ident {$(
                 $(#[doc = $doc:literal])*
                 $method:ident => $name:ident {
                     id: $id:literal,
@@ -47,7 +47,7 @@ mod tests {
                     body: [$($body:ident $($bty:ty)?)?],
                     merchant: $merchant:ident,
                     response: $response:ident $($rty:ty)?,
-                    export: [$($export:ident $ewire:literal)?],
+                    export: [$($export:ident $ewire:literal $export_method:ident)?],
                     deprecated: $deprecated:literal,
                 }
             )*}

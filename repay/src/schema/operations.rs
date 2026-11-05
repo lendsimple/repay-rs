@@ -10,7 +10,7 @@
 macro_rules! operation_table {
     ($callback:ident) => {
         $callback! {
-            ach_auth_forms {
+            ach_auth_forms => AchAuthForms {
                 /// Create a new ACH authorization form.
                 ///
                 /// Creates an auth form record with sanitized HTML content. Optionally links to a single
@@ -49,7 +49,7 @@ macro_rules! operation_table {
                     body: [],
                     merchant: none,
                     response: json $crate::types::Json,
-                    export: [pdf "pdf"],
+                    export: [pdf "pdf" find_pdf],
                     deprecated: false,
                 }
                 /// Get an ACH authorization form by ID.
@@ -69,7 +69,7 @@ macro_rules! operation_table {
                     body: [],
                     merchant: none,
                     response: json $crate::types::Json,
-                    export: [pdf "pdf"],
+                    export: [pdf "pdf" get_pdf],
                     deprecated: false,
                 }
                 /// Link a transaction to an existing ACH authorization form.
@@ -138,7 +138,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            ach_reporting {
+            ach_reporting => AchReporting {
                 /// Get ACH transactions.
                 ///
                 /// Retrieves recent ACH transactions for the authenticated user. If {transactionId}
@@ -174,7 +174,7 @@ macro_rules! operation_table {
                     body: [],
                     merchant: none,
                     response: json $crate::types::Json,
-                    export: [format "format"],
+                    export: [format "format" list_export],
                     deprecated: false,
                 }
                 /// Get NACHA return rate threshold compliance report.
@@ -213,7 +213,7 @@ macro_rules! operation_table {
                     body: [],
                     merchant: none,
                     response: json ::std::vec::Vec<$crate::schema::NachaThresholdReport>,
-                    export: [format "format"],
+                    export: [format "format" nacha_threshold_report_export],
                     deprecated: false,
                 }
                 /// Query ACH transactions with full filter capabilities.
@@ -242,7 +242,7 @@ macro_rules! operation_table {
                     body: [json $crate::schema::AchTransactionQuery],
                     merchant: none,
                     response: json $crate::types::Json,
-                    export: [format "format"],
+                    export: [format "format" query_export],
                     deprecated: false,
                 }
                 /// Query ACH batches.
@@ -264,7 +264,7 @@ macro_rules! operation_table {
                     body: [json $crate::schema::AchBatchQuery],
                     merchant: none,
                     response: json $crate::types::Json,
-                    export: [format "format"],
+                    export: [format "format" query_batches_export],
                     deprecated: false,
                 }
                 /// Export ACH transactions via query string parameters.
@@ -347,11 +347,11 @@ macro_rules! operation_table {
                     body: [],
                     merchant: none,
                     response: json $crate::types::Json,
-                    export: [format "format"],
+                    export: [format "format" search_export],
                     deprecated: false,
                 }
             }
-            ach_tokens {
+            ach_tokens => AchTokens {
                 /// Create an ACH token for the current merchant.
                 ///
                 /// Creates a new ACH token for the current merchant without associating it to a specific customer.
@@ -461,7 +461,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            ach_transactions {
+            ach_transactions => AchTransactions {
                 /// Performs a bulk void of ACH transactions. Restricted to reseller users.
                 bulk_void => BulkVoid {
                     id: "AchTransactionProcessing_BulkVoid",
@@ -624,7 +624,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            adjustments {
+            adjustments => Adjustments {
                 /// Process bulk disbursement funding adjustments from a CSV file.
                 ///
                 /// Processes bulk disbursement funding adjustments from a CSV file uploaded as multipart form data.
@@ -703,7 +703,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            batches {
+            batches => Batches {
                 /// Queue a card settlement batch for closing.
                 ///
                 /// Queues a card settlement batch for closing. Supports two modes depending on the request:
@@ -734,7 +734,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            card_tokens {
+            card_tokens => CardTokens {
                 /// Create a card token for the current merchant.
                 ///
                 /// Creates a new card token without customer association. Stores the card's PAN (encrypted), expiration date,
@@ -854,7 +854,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            card_transactions {
+            card_transactions => CardTransactions {
                 /// Authorize a card transaction.
                 ///
                 /// Processes a card authorization that reserves funds without capturing them. Supports 3-D Secure
@@ -1109,7 +1109,7 @@ macro_rules! operation_table {
                     body: [json $crate::schema::CardTransactionQuery],
                     merchant: none,
                     response: json $crate::types::Json,
-                    export: [format "format"],
+                    export: [format "format" query_export],
                     deprecated: false,
                 }
                 /// Query card transactions by date with report type routing.
@@ -1135,7 +1135,7 @@ macro_rules! operation_table {
                     body: [json $crate::schema::CardTransactionsByDateQuery],
                     merchant: none,
                     response: json $crate::types::Json,
-                    export: [format "format"],
+                    export: [format "format" query_by_date_export],
                     deprecated: false,
                 }
                 /// Rebill a previous card transaction.
@@ -1291,7 +1291,7 @@ macro_rules! operation_table {
                     body: [],
                     merchant: none,
                     response: json $crate::types::Json,
-                    export: [format "format"],
+                    export: [format "format" search_export],
                     deprecated: false,
                 }
                 /// Get a summary of card transactions.
@@ -1347,7 +1347,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            cash_transactions {
+            cash_transactions => CashTransactions {
                 /// Send an email receipt for a cash transaction.
                 ///
                 /// Sends an email receipt for a cash transaction. Delegates to
@@ -1415,7 +1415,7 @@ macro_rules! operation_table {
                     body: [json $crate::schema::CashTransactionQuery],
                     merchant: none,
                     response: json $crate::types::Json,
-                    export: [format "format"],
+                    export: [format "format" query_export],
                     deprecated: false,
                 }
                 /// Refund a cash transaction.
@@ -1485,7 +1485,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            contracts {
+            contracts => Contracts {
                 /// Create a recurring billing contract for a customer.
                 ///
                 /// Creates a new recurring billing contract for the specified customer. Performs the following
@@ -1610,7 +1610,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            custom_fields {
+            custom_fields => CustomFields {
                 /// Create a custom field definition for the authenticated merchant.
                 ///
                 /// Creates a new custom field definition for the authenticated user's merchant. Delegates to
@@ -1731,7 +1731,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            customers {
+            customers => Customers {
                 /// Get network tokenization events for a customer's card tokens.
                 ///
                 /// Retrieves network tokenization events for a customer's card tokens within an optional date range.
@@ -2122,7 +2122,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            digital_wallet {
+            digital_wallet => DigitalWallet {
                 /// Create an Apple Pay web session.
                 ///
                 /// Creates an Apple Pay web session for use in Apple Pay JS on the web. Maps the
@@ -2239,7 +2239,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            digital_wallet_transactions {
+            digital_wallet_transactions => DigitalWalletTransactions {
                 /// Authorize a card transaction via Apple Pay.
                 ///
                 /// Processes an Apple Pay card authorization. Decrypts the Apple Pay payment token via
@@ -2342,7 +2342,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            fraud_velocity {
+            fraud_velocity => FraudVelocity {
                 /// Activate a fraud velocity template.
                 ///
                 /// Activates a fraud velocity template, propagating its velocity limit settings (card, ACH, disbursement
@@ -2494,7 +2494,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            health {
+            health => Health {
                 /// Basic liveness health check.
                 ///
                 /// Basic liveness health check endpoint. Returns HTTP 200 with no body to indicate the API
@@ -2513,7 +2513,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            onboarding {
+            onboarding => Onboarding {
                 /// Create an eCash merchant for an organization.
                 ///
                 /// Creates a new merchant in the eCash settlement service for the specified organization ID.
@@ -2669,7 +2669,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            reseller_reports {
+            reseller_reports => ResellerReports {
                 /// Query settled disbursement transactions for reseller-level reporting.
                 ///
                 /// Queries settled disbursement transactions for reseller-level reporting, including associated
@@ -2688,7 +2688,7 @@ macro_rules! operation_table {
                     body: [json $crate::schema::CardDisbursementReportRequest],
                     merchant: none,
                     response: json ::std::vec::Vec<$crate::schema::CardDisbursementReportData>,
-                    export: [format "format"],
+                    export: [format "format" disbursements_export],
                     deprecated: false,
                 }
                 /// Query card transactions for reseller-level reporting (deprecated).
@@ -2718,7 +2718,7 @@ macro_rules! operation_table {
                     body: [json $crate::schema::CardTransactionQuery],
                     merchant: none,
                     response: json $crate::types::Json,
-                    export: [format "format"],
+                    export: [format "format" query_transactions_export],
                     deprecated: true,
                 }
                 /// Query card transactions for auto-reconciliation.
@@ -2777,7 +2777,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            routing_rules {
+            routing_rules => RoutingRules {
                 /// Create a new request rule for the authenticated merchant.
                 ///
                 /// Creates a new request rule (pre-transaction routing rule) for the authenticated user's merchant.
@@ -3057,7 +3057,7 @@ macro_rules! operation_table {
                     deprecated: false,
                 }
             }
-            validation {
+            validation => Validation {
                 /// Validate an ACH account.
                 ///
                 /// Validates the provided ACH account details including account number, transit number, and

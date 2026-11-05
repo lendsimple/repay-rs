@@ -11,7 +11,7 @@
 /// `Operation` impl, and its query parameters' type.
 macro_rules! impl_operations {
     ($(
-        $resource:ident {$(
+        $resource:ident => $handle:ident {$(
             $(#[doc = $doc:literal])*
             $method:ident => $name:ident {
                 id: $id:literal,
@@ -28,7 +28,7 @@ macro_rules! impl_operations {
                 body: [$($body:ident $($bty:ty)?)?],
                 merchant: $merchant:ident,
                 response: $response:ident $($rty:ty)?,
-                export: [$($export:ident $ewire:literal)?],
+                export: [$($export:ident $ewire:literal $export_method:ident)?],
                 deprecated: $deprecated:tt,
             }
         )*}
@@ -206,7 +206,7 @@ mod tests {
     use crate::operation::Operation;
 
     macro_rules! names {
-        ($($resource:ident {$(
+        ($($resource:ident => $handle:ident {$(
             $(#[doc = $doc:literal])*
             $method:ident => $name:ident { $($entry:tt)* }
         )*})*) => {
