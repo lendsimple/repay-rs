@@ -141,8 +141,10 @@ macro_rules! impl_operations {
     (@response_ty json $ty:ty) => { $ty };
     (@response_ty empty) => { () };
     (@response_ty download) => { $crate::types::Download };
+    (@response_ty bulk) => { $crate::bulk::BulkOutcome };
 
     (@accept download) => { const ACCEPT: &'static str = "*/*"; };
+    (@accept bulk) => { const ACCEPT: &'static str = "*/*"; };
     (@accept $json_or_empty:ident) => {};
 
     (@method GET) => { $crate::transport::Method::Get };
@@ -180,6 +182,7 @@ macro_rules! impl_operations {
     };
 
     (@decode $response:ident json) => { $crate::protocol::decode_json($response) };
+    (@decode $response:ident bulk) => { $crate::bulk::decode($response) };
     (@decode $response:ident download) => {
         ::core::result::Result::Ok($crate::protocol::decode_download($response))
     };

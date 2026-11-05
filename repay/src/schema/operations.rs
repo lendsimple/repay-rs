@@ -642,7 +642,7 @@ macro_rules! operation_table {
                     query: [],
                     body: [multipart],
                     merchant: none,
-                    response: json $crate::types::Json,
+                    response: bulk,
                     export: [],
                     deprecated: false,
                 }
@@ -886,7 +886,7 @@ macro_rules! operation_table {
                     query: [],
                     body: [multipart],
                     merchant: optional,
-                    response: json $crate::types::Json,
+                    response: bulk,
                     export: [],
                     deprecated: false,
                 }

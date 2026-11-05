@@ -7,6 +7,7 @@ mod common;
 use std::time::Duration;
 
 use common::{Answer, MERCHANT_ID, MockApi, credentials, fixture};
+use repay::bulk::BulkOutcome;
 use repay::{Client, Error};
 
 fn client(api: &MockApi) -> Client {
@@ -152,6 +153,29 @@ async fn an_invalid_request_is_never_sent() {
         .unwrap_err();
     assert!(matches!(err, Error::Validation(_)), "{err:?}");
     api.assert_not_called();
+}
+
+#[tokio::test]
+async fn a_failed_bulk_upload_is_a_csv_report() {
+    let api = MockApi::new_async(
+        "POST",
+        "/rgapi/v1/adjustments/disbursementfunding/bulk",
+        Answer::file(
+            "text/csv",
+            "MerchantId,TransactionId,Error\n1234,1001,\"Exceeds the balance, 10.00\"\n",
+        ),
+    )
+    .await;
+    let outcome = client(&api)
+        .adjustments()
+        .bulk_disbursement_funding(&common::adjustments())
+        .await
+        .unwrap();
+    let BulkOutcome::Failed(report) = outcome else {
+        panic!("expected a CSV report, got {outcome:?}");
+    };
+    assert_eq!(report.get(0, "Error"), Some("Exceeds the balance, 10.00"));
+    assert_eq!(api.received().header("accept"), Some("*/*"));
 }
 
 /// The futures can be spawned on a multi-threaded tokio runtime.

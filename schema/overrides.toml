@@ -295,8 +295,9 @@ CardTransactions_ProcessUnlinkedRefundAsync = { resource = "card_transactions", 
 CardTransactions_ProcessReversal = { resource = "card_transactions", method = "reversal" }
 CardTransactions_ProcessVoid = { resource = "card_transactions", method = "void" }
 CardTransactions_BulkVoid = { resource = "card_transactions", method = "bulk_void" }
-# A CSV upload; the spec declares no parameter for the file.
-CardTransactions_BulkProcessReversal = { resource = "card_transactions", method = "bulk_reversal", multipart = true }
+# A CSV upload; the spec declares no parameter for the file. "Returns a result
+# containing successful and failed transactions", read like the adjustments'.
+CardTransactions_BulkProcessReversal = { resource = "card_transactions", method = "bulk_reversal", multipart = true, response = "bulk" }
 CardTransactions_EmailTransactionReceipt = { resource = "card_transactions", method = "email_receipt" }
 CardTransactions_GetItrProfileWarningContextInfo = { resource = "card_transactions", method = "itr_profile_warning" }
 CardTransactions_GetTransactionById = { resource = "card_transactions", method = "get" }
@@ -458,7 +459,9 @@ CardSettlementBatchClosing_CloseCardSettlementBatch = { resource = "batches", me
 # Disbursement funding adjustments (internal API).
 Adjustments_ProcessDisbursementFundingAdjustment = { resource = "adjustments", method = "disbursement_funding" }
 Adjustments_ProcessDisbursementFundingReversal = { resource = "adjustments", method = "disbursement_funding_reversal" }
-# A CSV upload; the spec declares no parameter for the file.
-Adjustments_ProcessBulkDisbursementFundingAdjustment = { resource = "adjustments", method = "bulk_disbursement_funding", multipart = true }
+# A CSV upload; the spec declares no parameter for the file. Answers JSON "on full
+# success, or a CSV file with per-row results (including error messages) on
+# partial or full failure".
+Adjustments_ProcessBulkDisbursementFundingAdjustment = { resource = "adjustments", method = "bulk_disbursement_funding", multipart = true, response = "bulk" }
 # Returns the CSV template, though the spec declares an untyped JSON object.
-Adjustments_GetBulkDisbursementFundingAdjustmentTemplate = { resource = "adjustments", method = "bulk_template", download = true }
+Adjustments_GetBulkDisbursementFundingAdjustmentTemplate = { resource = "adjustments", method = "bulk_template", response = "download" }

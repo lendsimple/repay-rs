@@ -1,0 +1,20 @@
+---
+source: repay/tests/requests.rs
+expression: "encode(&adjustments::BulkDisbursementFunding::new(&upload), &context())"
+---
+POST https://api.sandbox.repayonline.com/rgapi/v1/adjustments/disbursementfunding/bulk
+accept: */*
+content-type: multipart/form-data; boundary=repay-boundary
+rg-api-secure-token: <token>
+rg-api-user: api-user
+user-agent: repay-rs/test
+
+--repay-boundary
+Content-Disposition: form-data; name="file"; filename="adjustments.csv"
+Content-Type: text/csv
+
+MerchantId,TransactionId,OriginalAmount,AdjustmentAmount
+1234,1001,100.00,25.00
+1234,1002,40,40
+
+--repay-boundary--

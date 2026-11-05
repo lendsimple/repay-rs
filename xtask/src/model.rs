@@ -86,9 +86,18 @@ pub struct OperationOverride {
     /// Query parameters to leave out (wire names).
     #[serde(default)]
     pub drop_query: Vec<String>,
-    /// The response is a file, though the spec declares JSON.
-    #[serde(default)]
-    pub download: bool,
+    /// A response the spec declares as JSON but that is something else.
+    pub response: Option<SpecialResponse>,
+}
+
+/// Responses the spec does not describe.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum SpecialResponse {
+    /// Always a file.
+    Download,
+    /// JSON on success, a CSV of per-row errors otherwise.
+    Bulk,
 }
 
 /// A Rust type for a value.
@@ -216,8 +225,8 @@ pub struct OperationDef {
     pub merchant: Merchant,
     /// `None` for an empty response.
     pub response: Option<Ty>,
-    /// The response is always a file.
-    pub download: bool,
+    /// Overrides how the response is read.
+    pub special_response: Option<SpecialResponse>,
     /// A parameter that switches the response to a file download.
     pub export: Option<Export>,
     pub deprecated: bool,
@@ -675,7 +684,7 @@ impl<'a> Builder<'a> {
             },
             merchant: Merchant::None,
             response: self.response(op)?,
-            download: ov.download,
+            special_response: ov.response,
             export: None,
             deprecated: op.deprecated,
             doc: operation_doc(op),

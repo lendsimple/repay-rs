@@ -48,6 +48,7 @@
 extern crate self as repay;
 
 pub mod blocking;
+pub mod bulk;
 pub mod client;
 mod config;
 mod credentials;

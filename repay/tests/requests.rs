@@ -177,6 +177,24 @@ fn bulk_reversal_uploads_a_csv() {
 }
 
 #[test]
+fn bulk_adjustment_uploads_the_documented_csv() {
+    let mut adjustments = repay::bulk::BulkAdjustment::new();
+    adjustments
+        .row(
+            1234,
+            1001,
+            Amount::from(dec!(100.00)),
+            Amount::from(dec!(25.00)),
+        )
+        .row(1234, 1002, Amount::from(dec!(40)), Amount::from(dec!(40)));
+    let upload = adjustments.to_upload().unwrap();
+    insta::assert_snapshot!(encode(
+        &adjustments::BulkDisbursementFunding::new(&upload),
+        &context()
+    ));
+}
+
+#[test]
 fn health_check_has_no_body() {
     insta::assert_snapshot!(encode(&health::Check::new(), &context()));
 }

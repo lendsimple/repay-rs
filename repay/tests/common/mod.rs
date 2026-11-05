@@ -246,6 +246,12 @@ pub fn batch() -> CloseCardSettlementBatchRequest {
         .build()
 }
 
+pub fn adjustments() -> repay::types::Upload {
+    let mut adjustments = repay::bulk::BulkAdjustment::new();
+    adjustments.row(1234, 1001, Amount::from(dec!(100)), Amount::from(dec!(25)));
+    adjustments.to_upload().unwrap()
+}
+
 /// The merchant every client in the case suites acts for.
 pub const MERCHANT_ID: i32 = 1234;
 
@@ -314,6 +320,14 @@ macro_rules! client_cases {
             custom_fields: custom_fields.list()
                 => "GET" "/rgapi/v1/customfields",
                 Answer::json(200, r#"[{"custom_field_id": 1}]"#);
+            bulk_adjustment_completed: adjustments.bulk_disbursement_funding(
+                &common::adjustments()
+            ) => "POST" "/rgapi/v1/adjustments/disbursementfunding/bulk",
+                Answer::json(200, r#"{"processed": 1}"#);
+            bulk_adjustment_failed: adjustments.bulk_disbursement_funding(
+                &common::adjustments()
+            ) => "POST" "/rgapi/v1/adjustments/disbursementfunding/bulk",
+                Answer::file("text/csv", "TransactionId,Error\n1001,Not found\n");
             health: health.check()
                 => "GET" "/rgapi/v1/health",
                 Answer::json(200, r#""Healthy""#);
