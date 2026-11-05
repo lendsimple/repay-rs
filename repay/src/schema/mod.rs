@@ -7,6 +7,28 @@
 //! Request types have builders (`CardSaleRequest::builder()`), and check the
 //! spec's constraints with [`Validate`](crate::validate::Validate). Response types
 //! leave every field optional, because the API sends `null` freely.
+//!
+//! Requests that take a card or bank account have shortcuts that set exactly one
+//! payment source, such as [`CardSaleRequest::keyed`], [`CardSaleRequest::token`]
+//! and [`AchSaleRequest::account`]:
+//!
+//! ```
+//! use repay::dec;
+//! use repay::schema::{AchAccount, AchSaleRequest, CardSaleRequest};
+//! use repay::types::Amount;
+//! use repay::validate::Validate;
+//!
+//! let mut sale = CardSaleRequest::token(Amount::from(dec!(19.99)), "tok_4f2a").with_cvv("123");
+//! sale.invoice_id = Some("INV-1".into());
+//! assert!(sale.validate().is_ok());
+//!
+//! let account = AchAccount::new("123456789", "021000021", "Ann Smith");
+//! let debit = AchSaleRequest::account(Amount::from(dec!(50)), account);
+//! assert!(debit.validate().is_ok());
+//!
+//! // Without a source, or with two, validation fails before anything is sent.
+//! assert!(CardSaleRequest::builder().amount(Amount::from(dec!(1))).build().validate().is_err());
+//! ```
 
 #[rustfmt::skip]
 mod enums;
@@ -17,7 +39,10 @@ mod models;
 #[allow(unused_macros, unused_imports)]
 pub(crate) mod operations;
 
+mod ext;
+
 pub use enums::*;
+pub use ext::AchAccount;
 pub use models::*;
 
 #[cfg(test)]
