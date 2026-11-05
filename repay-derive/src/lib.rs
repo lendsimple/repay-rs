@@ -1,4 +1,5 @@
-//! Derive macros for the [`repay`](https://docs.rs/repay) crate.
+//! Derive macros for the [`repay-gateway`](https://docs.rs/repay-gateway) crate
+//! (imported as `repay`).
 //!
 //! They are used by the crate's generated schema types and are not intended as a
 //! general framework. Serialization stays with serde; these derives add what serde

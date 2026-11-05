@@ -1,13 +1,14 @@
 [package]
-name = "repay-derive"
-description = "Derive macros for the repay crate (validation and redacted Debug)."
+name = "repay-gateway-derive"
+description = "Derive macros for the repay-gateway crate (validation and redacted Debug)."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
 rust-version.workspace = true
-documentation = "https://docs.rs/repay-derive"
+readme = "README.md"
+documentation = "https://docs.rs/repay-gateway-derive"
 keywords = ["repay", "payments", "derive"]
 categories = ["development-tools::procedural-macro-helpers"]
 
@@ -17,4 +18,6 @@ quote = "1.0.47"
 syn = { version = "3.0.6", features = ["full", "extra-traits"] }
 
 [lib]
+# Imported as `repay_derive`, matching the `repay` library it serves.
+name = "repay_derive"
 proc-macro = true

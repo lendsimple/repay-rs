@@ -1,5 +1,5 @@
 [package]
-name = "repay"
+name = "repay-gateway"
 description = "A typed client for the Repay Gateway API (Repay Online), for native and WebAssembly targets."
 version.workspace = true
 edition.workspace = true
@@ -7,9 +7,14 @@ license.workspace = true
 repository.workspace = true
 authors.workspace = true
 rust-version.workspace = true
-documentation = "https://docs.rs/repay"
+readme = "README.md"
+documentation = "https://docs.rs/repay-gateway"
 keywords = ["repay", "payments", "ach", "credit-card", "wasm"]
 categories = ["api-bindings", "finance", "wasm"]
+
+[lib]
+# Imported as `repay`; that package name was already taken on crates.io.
+name = "repay"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -19,7 +24,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 bon = "3.10.2"
 csv = "1.4.0"
 # Exact: the derive's output calls this crate's hidden internals.
-repay-derive = { version = "=0.1.0", path = "../repay-derive" }
+repay-derive = { package = "repay-gateway-derive", version = "=0.1.0", path = "../repay-derive" }
 reqwest = { version = "0.13.5", default-features = false, optional = true }
 rust_decimal = { version = "1.43.0", features = ["macros"] }
 secrecy = "0.10.3"

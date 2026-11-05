@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `repay` and `repay-derive` are recorded here.
+All notable changes to `repay-gateway` and `repay-gateway-derive` are recorded here.
 The two crates are released together, with the same version.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
@@ -25,7 +25,7 @@ the crates follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `validate::Validate`, which collects every violation of the schema's constraints
   with the path of the field, and the `validate::rules` that stand in for the
   schema's patterns.
-- `repay-derive`, whose `Model` derive implements `Validate` and a `Debug` that
+- `repay-gateway-derive`, whose `Model` derive implements `Validate` and a `Debug` that
   redacts card numbers and other secrets.
 - `schema`: every request and response type of the API, generated from the specs.
   Requests have builders and check the spec's constraints; responses accept
