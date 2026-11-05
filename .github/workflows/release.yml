@@ -1,0 +1,67 @@
+name: Release
+
+# Publishes both crates to crates.io when a GitHub Release is published for a version
+# tag such as `v0.1.0`. Drafts do not trigger it. See RELEASING.md.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+# One release at a time, and never cancel one that has started publishing.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # Create this environment in the repository settings; give it required reviewers
+    # to approve each release.
+    environment: crates-io
+    permissions:
+      contents: read
+      # Lets crates-io-auth-action request a short-lived token (trusted publishing).
+      id-token: write
+    steps:
+      # Checks out the release's tag. This job never pushes, so keep no credentials.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: "stable"
+
+      - name: Check the tag matches the crate version and the changelog
+        env:
+          # Through the environment, not interpolated into the script: tag names are
+          # user input.
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version=$(cargo metadata --no-deps --format-version 1 \
+            | jq -r '.packages[] | select(.name == "repay-gateway") | .version')
+          if [ "v$version" != "$TAG" ]; then
+            echo "::error::Release tag $TAG does not match the crate version $version"
+            exit 1
+          fi
+          if ! grep -q "^## \[$version\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no section for $version"
+            exit 1
+          fi
+
+      - run: cargo xtask codegen --check
+      - run: cargo test --workspace --all-features
+
+      # Trusted publishing only works for crates that already exist on crates.io, so
+      # the first release falls back to the CARGO_REGISTRY_TOKEN secret.
+      - name: Authenticate with crates.io (trusted publishing)
+        id: auth
+        continue-on-error: true
+        uses: rust-lang/crates-io-auth-action@3268eb413133e2960fa4ae0e963ca76380c54cd9 # v1.0.6
+
+      # Publishes repay-gateway-derive, then repay-gateway; xtask is not published.
+      - run: cargo publish --workspace
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token || secrets.CARGO_REGISTRY_TOKEN }}
