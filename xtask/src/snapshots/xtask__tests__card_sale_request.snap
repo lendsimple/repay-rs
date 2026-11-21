@@ -163,6 +163,22 @@ StructDef {
             sensitive: false,
         },
         Field {
+            name: "override_card_token_auth_data",
+            ty: Bool,
+            required: false,
+            doc: Some(
+                "A value indicating whether the request values (name on card, street, zip) should override the card token's saved values\nwhen the merchant's card token override timing is \"Apply Upon Request\".",
+            ),
+            facets: Facets {
+                min_length: None,
+                max_length: None,
+                min: None,
+                max: None,
+                rule: None,
+            },
+            sensitive: false,
+        },
+        Field {
             name: "zip",
             ty: String,
             required: false,

@@ -250,6 +250,33 @@ OperationDef {
             ),
         },
         QueryParam {
+            field: "settlement_window_id",
+            wire: "query.settlement_window_id",
+            ty: String,
+            multi: false,
+            doc: Some(
+                "The merchant settlement window (its opaque id from the Settlement Windows screen) the results\nare limited to.",
+            ),
+        },
+        QueryParam {
+            field: "settlement_window_start_date",
+            wire: "query.settlement_window_start_date",
+            ty: DateTime,
+            multi: false,
+            doc: Some(
+                "The first Pacific Time settle day the Settlement Windows screen listed the window under.",
+            ),
+        },
+        QueryParam {
+            field: "settlement_window_end_date",
+            wire: "query.settlement_window_end_date",
+            ty: DateTime,
+            multi: false,
+            doc: Some(
+                "The Pacific Time settle day after the last one the Settlement Windows screen listed.",
+            ),
+        },
+        QueryParam {
             field: "start_date",
             wire: "query.start_date",
             ty: DateTime,

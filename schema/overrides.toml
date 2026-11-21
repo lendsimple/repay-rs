@@ -166,7 +166,7 @@ remove = [
 # are not provided"; device data is "in leu of a card number, exp date and cvv".
 CardSaleRequest = [["card_number", "exp_date"], ["card_token"], ["device_card_data"], ["magnetic_stripe_data"]]
 CardAuthRequest = [["card_number", "exp_date"], ["card_token"], ["device_card_data"], ["magnetic_stripe_data"]]
-UnlinkedCardRefundRequest = [["card_number", "exp_date"], ["card_token"]]
+UnlinkedCardRefundRequest = [["card_number", "exp_date"], ["card_token"], ["device_card_data"], ["magnetic_stripe_data"]]
 CardDisbursementRequest = [["card_number", "exp_date"], ["card_token"], ["device_card_data"]]
 # Not CreateCardTokenRequest: the token update operations send it too, where an
 # expiration date alone is a valid change.

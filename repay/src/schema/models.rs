@@ -1537,6 +1537,10 @@ pub struct CardAuthRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[repay(rule = "no_angle_bracket")]
     pub street: Option<String>,
+    /// A value indicating whether the request values (name on card, street, zip) should override the card token's saved values
+    /// when the merchant's card token override timing is "Apply Upon Request".
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub override_card_token_auth_data: Option<bool>,
     /// The ZIP code associated with the card.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub zip: Option<String>,
@@ -2128,6 +2132,10 @@ pub struct CardSaleRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[repay(rule = "no_angle_bracket")]
     pub street: Option<String>,
+    /// A value indicating whether the request values (name on card, street, zip) should override the card token's saved values
+    /// when the merchant's card token override timing is "Apply Upon Request".
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub override_card_token_auth_data: Option<bool>,
     /// The ZIP code associated with the card.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub zip: Option<String>,
@@ -2307,6 +2315,16 @@ pub struct CardTransactionQuery {
     /// The end settlement date for the transaction query.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub end_settle_date: Option<DateTime>,
+    /// The merchant settlement window (its opaque id from the Settlement Windows screen) the results
+    /// are limited to.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub settlement_window_id: Option<String>,
+    /// The first Pacific Time settle day the Settlement Windows screen listed the window under.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub settlement_window_start_date: Option<DateTime>,
+    /// The Pacific Time settle day after the last one the Settlement Windows screen listed.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub settlement_window_end_date: Option<DateTime>,
     /// The start date for the transaction query.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub start_date: Option<DateTime>,
@@ -4186,7 +4204,9 @@ pub struct TransactionTypeSummary {
 /// Represents a request to refund a card transaction without referencing a previous transaction.
 #[derive(Clone, PartialEq, Serialize, Model, Builder)]
 #[builder(on(String, into))]
-#[repay(one_of = "card_number exp_date | card_token")]
+#[repay(
+    one_of = "card_number exp_date | card_token | device_card_data | magnetic_stripe_data"
+)]
 #[non_exhaustive]
 pub struct UnlinkedCardRefundRequest {
     /// The amount to refund.
@@ -4213,6 +4233,10 @@ pub struct UnlinkedCardRefundRequest {
     /// The customer identifier for the refund transaction.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub customer_id: Option<String>,
+    /// A value indicating whether the request values (name on card, street, zip) should override the card token's saved values
+    /// when the merchant's card token override timing is "Apply Upon Request".
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub override_card_token_auth_data: Option<bool>,
     /// The name on the card.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[repay(rule = "no_angle_bracket")]
@@ -4224,10 +4248,21 @@ pub struct UnlinkedCardRefundRequest {
     /// The ZIP code associated with the cardholder's address.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub zip: Option<String>,
+    /// The magnetic stripe data for the card.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[repay(sensitive)]
+    pub magnetic_stripe_data: Option<String>,
     /// The list of custom fields for the refund transaction.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     #[builder(default)]
     pub custom_fields: Vec<TransactionCustomField>,
+    /// Use encrypted device card data in leu of a card number, exp date and cvv
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[repay(sensitive)]
+    pub device_card_data: Option<String>,
+    /// If using DeviceCardData, signifies that that data was encrypted using a test key
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub device_card_data_test_key: Option<bool>,
 }
 
 /// Represents a request to update the deferral date on an ACH authorization form.

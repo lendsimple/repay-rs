@@ -1255,6 +1255,13 @@ macro_rules! operation_table {
                         start_settle_date: $crate::types::DateTime = "query.start_settle_date",
                         /// The end settlement date for the transaction query.
                         end_settle_date: $crate::types::DateTime = "query.end_settle_date",
+                        /// The merchant settlement window (its opaque id from the Settlement Windows screen) the results
+                        /// are limited to.
+                        settlement_window_id: ::std::string::String = "query.settlement_window_id",
+                        /// The first Pacific Time settle day the Settlement Windows screen listed the window under.
+                        settlement_window_start_date: $crate::types::DateTime = "query.settlement_window_start_date",
+                        /// The Pacific Time settle day after the last one the Settlement Windows screen listed.
+                        settlement_window_end_date: $crate::types::DateTime = "query.settlement_window_end_date",
                         /// The start date for the transaction query.
                         start_date: $crate::types::DateTime = "query.start_date",
                         /// The end date for the transaction query.
@@ -3063,7 +3070,9 @@ macro_rules! operation_table {
                 /// Validates the provided ACH account details including account number, transit number, and
                 /// account holder information. Performs business rule validation, merchant context checks, and
                 /// may invoke external validation services depending on merchant configuration. Supports name
-                /// validation and OFAC validation when enabled for the merchant.
+                /// validation and OFAC validation when enabled for the merchant. When the Account Blocklist validation
+                /// is enabled for the merchant, an account that is on the Account Blocklist is rejected with HTTP 400
+                /// before the REPAY Account Validation Cache and external validation are performed.
                 ach_account => AchAccount {
                     id: "AchAccountValidation",
                     method: POST,

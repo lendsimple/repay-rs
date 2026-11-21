@@ -4,7 +4,7 @@
 use repay::dec;
 use repay::schema::{
     CardSaleRequest, CustomerBaseRequest, CustomerStatus, State, TransactionCustomField,
-    TransactionDetailCardResponse,
+    TransactionDetailCardResponse, UnlinkedCardRefundRequest,
 };
 use repay::types::{Amount, ExpDate, MerchantId, TransactionId};
 use repay::validate::Validate;
@@ -76,6 +76,15 @@ fn a_request_needs_exactly_one_payment_source() {
         "set exactly one of card_number, card_token, device_card_data or magnetic_stripe_data, \
          not card_token and device_card_data"
     );
+}
+
+#[test]
+fn an_unlinked_refund_accepts_device_card_data_as_its_payment_source() {
+    let request = UnlinkedCardRefundRequest::builder()
+        .amount(Amount::from(dec!(1)))
+        .device_card_data("encrypted")
+        .build();
+    assert!(request.validate().is_ok());
 }
 
 #[test]
