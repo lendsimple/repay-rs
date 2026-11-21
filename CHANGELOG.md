@@ -8,10 +8,13 @@ the crates follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-21
+
+The first release.
+
 ### Added
 
 - Published as `repay-gateway` (imported as `repay`) and `repay-gateway-derive`.
-
 - The Repay Gateway API's Swagger specifications, public and internal, vendored in
   `schema/`.
 - `types::Amount`, an exact money amount sent as a JSON number and read from a
@@ -56,3 +59,6 @@ the crates follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   the rows that failed.
 - Examples for card sales, ACH sales, card tokens, customers and bulk
   adjustments, and sandbox tests (ignored unless credentials are set).
+
+[Unreleased]: https://github.com/lendsimple/repay-rs/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/lendsimple/repay-rs/releases/tag/v0.1.0

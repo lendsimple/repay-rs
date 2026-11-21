@@ -563,7 +563,7 @@ let page: Json = client.ach_reporting().query(&AchTransactionQuery::builder()
 
 **Tests**: README doctests; the packaged-crate test.
 
-**Status**: In Progress — the work is done and checked locally; CI has not run on GitHub (the repository has no remote yet), and the sandbox tests await credentials.
+**Status**: In Progress — CI is green on GitHub and 0.1.0 is prepared (changelog cut, specs refreshed on 2026-11-21); the sandbox tests still await credentials, and the release itself is not yet published.
 
 **Notes (as built)**:
 - **Crate name:** `repay` is taken on crates.io (an unrelated 2017 CLI crate). Decided with the user: the packages are `repay-gateway` and `repay-gateway-derive`, with `[lib] name = "repay"` / `"repay_derive"`, so code still says `use repay::…` and the derive's `::repay::` paths are unchanged. Directories stay `repay/` and `repay-derive/`.
@@ -575,7 +575,6 @@ let page: Json = client.ach_reporting().query(&AchTransactionQuery::builder()
   - the packaged-crate script passes 211 tests (the UI snapshots skip outside the repository, by design);
   - the full feature matrix, MSRV, minimal-versions, wasm, docs (default, none and all features, plus nightly docs.rs) and deny all pass.
 - **Remaining:**
-  - push to `github.com/lendsimple/repay-rs` and get CI green;
   - run the sandbox tests and resolve the open items below;
   - then follow `RELEASING.md` for 0.1.0.
 
