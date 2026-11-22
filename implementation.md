@@ -563,7 +563,7 @@ let page: Json = client.ach_reporting().query(&AchTransactionQuery::builder()
 
 **Tests**: README doctests; the packaged-crate test.
 
-**Status**: In Progress — CI is green on GitHub and 0.1.0 is prepared (changelog cut, specs refreshed on 2026-11-21); the sandbox tests still await credentials, and the release itself is not yet published.
+**Status**: Complete (sandbox run pending) — 0.1.0 was published to crates.io on 2026-11-21 by the Release workflow, using the `CARGO_REGISTRY_TOKEN` fallback; the sandbox tests still await credentials.
 
 **Notes (as built)**:
 - **Crate name:** `repay` is taken on crates.io (an unrelated 2017 CLI crate). Decided with the user: the packages are `repay-gateway` and `repay-gateway-derive`, with `[lib] name = "repay"` / `"repay_derive"`, so code still says `use repay::…` and the derive's `::repay::` paths are unchanged. Directories stay `repay/` and `repay-derive/`.
@@ -576,7 +576,7 @@ let page: Json = client.ach_reporting().query(&AchTransactionQuery::builder()
   - the full feature matrix, MSRV, minimal-versions, wasm, docs (default, none and all features, plus nightly docs.rs) and deny all pass.
 - **Remaining:**
   - run the sandbox tests and resolve the open items below;
-  - then follow `RELEASING.md` for 0.1.0.
+  - configure trusted publishing on crates.io for both crates, then delete the `CARGO_REGISTRY_TOKEN` secret and revoke the token (`RELEASING.md`, one-time setup, steps 4–5).
 
 ## Verification (end-to-end)
 1. `cargo xtask codegen --check`
